@@ -120,7 +120,7 @@ export const DEMO_STATIONS: Station[] = [
   },
 ];
 
-export const DEMO_AIR_QUALITY: AirQualityData = {
+export const DEMO_AIR_QUALITY: any = {
   location: DEMO_LOCATION,
   measurements: {
     pm25: {

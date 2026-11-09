@@ -1,160 +1,281 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { Search, Bell, Sun, Moon, MapPin, X, Loader2 } from "lucide-react";
-import { useTheme } from "@/components/providers/ThemeProvider";
-import { cn } from "@/lib/utils";
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Search, 
+  MapPin, 
+  Navigation, 
+  Sun, 
+  Moon, 
+  Bell, 
+  Menu, 
+  Check, 
+  Loader2, 
+  X,
+  ExternalLink
+} from 'lucide-react';
+import { useLocation, DEFAULT_LOCATIONS } from '@/context/LocationContext';
+import { useTheme } from '@/context/ThemeContext';
+import { LocationData } from '@/types';
+import { cn } from '@/lib/utils';
 
-interface SearchResult {
-  id: string;
-  name: string;
-  displayName: string;
-  coordinates: { lat: number; lon: number };
-  country?: string;
-}
-
-interface HeaderProps {
-  onLocationSelect?: (result: SearchResult) => void;
+export interface HeaderProps {
+  onToggleMobileMenu?: () => void;
+  onOpenNotifications?: () => void;
+  onLocationSelect?: (result: any) => void;
   currentLocation?: string;
 }
 
-export function Header({ onLocationSelect, currentLocation }: HeaderProps) {
-  const { theme, toggle } = useTheme();
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
+export function Header({ onToggleMobileMenu, onOpenNotifications, onLocationSelect }: HeaderProps) {
+  const { currentLocation, setCurrentLocation, requestUserLocation, isLoadingLocation, locationError } = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
-  const search = useCallback(async (q: string) => {
-    if (q.length < 2) {
-      setResults([]);
-      setShowDropdown(false);
-      return;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<LocationData[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
     }
-    setLoading(true);
-    try {
-      // Use Nominatim (OpenStreetMap) geocoding — free, no key required
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`,
-        { headers: { "Accept-Language": "en" } }
-      );
-      const data = await res.json();
-      const mapped: SearchResult[] = data.map((item: any) => ({
-        id: item.place_id,
-        name: item.name || item.display_name.split(",")[0],
-        displayName: item.display_name,
-        coordinates: { lat: parseFloat(item.lat), lon: parseFloat(item.lon) },
-        country: item.address?.country,
-      }));
-      setResults(mapped);
-      setShowDropdown(true);
-    } catch {
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleChange = (v: string) => {
-    setQuery(v);
-    const tid = setTimeout(() => search(v), 400);
-    return () => clearTimeout(tid);
-  };
+  // Debounced search via Open-Meteo Geocoding
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
 
-  const handleSelect = (result: SearchResult) => {
-    setQuery(result.name);
-    setShowDropdown(false);
-    onLocationSelect?.(result);
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+            searchQuery.trim()
+          )}&count=6&language=en&format=json`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data.results && Array.isArray(data.results)) {
+            const mapped: LocationData[] = data.results.map((r: any) => ({
+              id: r.id || `${r.latitude}_${r.longitude}`,
+              name: r.name,
+              country: r.country || '',
+              countryCode: r.country_code,
+              admin1: r.admin1,
+              latitude: r.latitude,
+              longitude: r.longitude,
+              timezone: r.timezone,
+              elevation: r.elevation,
+            }));
+            setSearchResults(mapped);
+            setIsDropdownOpen(true);
+          } else {
+            setSearchResults([]);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching search results:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSelectLocation = (loc: LocationData) => {
+    setCurrentLocation(loc);
+    setIsDropdownOpen(false);
+    setSearchQuery('');
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur border-b border-slate-700/50 px-6 py-3">
-      <div className="flex items-center gap-4">
-        {/* Location indicator */}
-        {currentLocation && (
-          <div className="hidden sm:flex items-center gap-1.5 text-sm text-slate-400 shrink-0">
-            <MapPin className="w-4 h-4 text-emerald-400" />
-            <span className="max-w-[200px] truncate">{currentLocation}</span>
-          </div>
-        )}
+    <header className="sticky top-0 z-20 w-full h-16 border-b border-slate-200 dark:border-navy-800 bg-white/80 dark:bg-navy-950/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-4 transition-colors">
+      {/* Left: Mobile Toggle & Current Location Chip */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onToggleMobileMenu}
+          className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors"
+          aria-label="Open navigation menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
 
-        {/* Search */}
-        <div className="relative flex-1 max-w-xl">
-          <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
-            {loading ? (
-              <Loader2 className="w-4 h-4 text-slate-400 animate-spin shrink-0" />
-            ) : (
-              <Search className="w-4 h-4 text-slate-400 shrink-0" />
-            )}
-            <input
-              value={query}
-              onChange={(e) => handleChange(e.target.value)}
-              onFocus={() => results.length > 0 && setShowDropdown(true)}
-              placeholder="Search city or location…"
-              className="bg-transparent text-sm text-slate-200 placeholder:text-slate-500 outline-none w-full"
-            />
-            {query && (
-              <button
-                onClick={() => {
-                  setQuery("");
-                  setResults([]);
-                  setShowDropdown(false);
-                }}
-                className="text-slate-500 hover:text-slate-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Dropdown */}
-          {showDropdown && results.length > 0 && (
-            <div className="absolute top-full mt-2 left-0 right-0 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-xl z-50">
-              {results.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => handleSelect(r)}
-                  className="w-full text-left px-4 py-3 hover:bg-slate-700 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-slate-200">{r.name}</p>
-                      <p className="text-xs text-slate-500 truncate">{r.displayName}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+        {/* Current Location Display Chip */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-navy-900 border border-slate-200 dark:border-navy-800 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm">
+          <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
+          <span className="font-semibold text-slate-900 dark:text-white truncate max-w-[120px] sm:max-w-[200px]">
+            {currentLocation.name}
+          </span>
+          {currentLocation.country && (
+            <span className="text-slate-500 dark:text-slate-400 hidden sm:inline">
+              , {currentLocation.country}
+            </span>
           )}
         </div>
 
-        {/* Right side actions */}
-        <div className="flex items-center gap-2 ml-auto">
-          <button
-            onClick={toggle}
-            className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-            title="Toggle theme"
-          >
-            {theme === "dark" ? (
-              <Sun className="w-5 h-5" />
+        {/* Detect Location Button */}
+        <button
+          onClick={() => requestUserLocation()}
+          disabled={isLoadingLocation}
+          className="p-2 rounded-xl text-slate-500 hover:text-emerald-500 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-navy-900 transition-colors"
+          title="Use my current GPS location"
+        >
+          {isLoadingLocation ? (
+            <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+          ) : (
+            <Navigation className="w-4 h-4" />
+          )}
+        </button>
+      </div>
+
+      {/* Center: Global Search Bar */}
+      <div ref={searchContainerRef} className="relative flex-1 max-w-md hidden sm:block">
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => {
+              if (searchResults.length > 0 || !searchQuery) {
+                setIsDropdownOpen(true);
+              }
+            }}
+            placeholder="Search city, station, or coordinates..."
+            className="w-full pl-10 pr-9 py-2 text-sm rounded-xl border border-slate-200 dark:border-navy-800 bg-slate-50 dark:bg-navy-900/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all shadow-inner"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSearchResults([]);
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Search Results Dropdown */}
+        {isDropdownOpen && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl shadow-xl overflow-hidden z-50 max-h-80 overflow-y-auto">
+            {isSearching ? (
+              <div className="p-4 flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+                <span>Searching worldwide locations...</span>
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div className="py-2">
+                <div className="px-3 py-1 text-[11px] font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+                  Search Results
+                </div>
+                {searchResults.map((loc) => {
+                  const isSelected = currentLocation.name.toLowerCase() === loc.name.toLowerCase();
+                  return (
+                    <button
+                      key={loc.id}
+                      onClick={() => handleSelectLocation(loc)}
+                      className={cn(
+                        'w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:bg-slate-100 dark:hover:bg-navy-800/80 transition-colors',
+                        isSelected && 'text-emerald-500 font-semibold bg-emerald-500/10'
+                      )}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-slate-900 dark:text-white font-medium">{loc.name}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {[loc.admin1, loc.country].filter(Boolean).join(', ')}
+                        </span>
+                      </div>
+                      {isSelected ? (
+                        <Check className="w-4 h-4 text-emerald-500" />
+                      ) : (
+                        <span className="text-[11px] text-slate-400">
+                          {(loc.latitude ?? loc.coordinates?.lat ?? 0).toFixed(2)}°, {(loc.longitude ?? loc.coordinates?.lon ?? 0).toFixed(2)}°
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : searchQuery.length >= 2 ? (
+              <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                No matching locations found for &quot;{searchQuery}&quot;.
+              </div>
             ) : (
-              <Moon className="w-5 h-5" />
+              <div className="py-2">
+                <div className="px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  Popular Monitoring Hubs
+                </div>
+                {DEFAULT_LOCATIONS.map((loc) => (
+                  <button
+                    key={loc.id}
+                    onClick={() => handleSelectLocation(loc)}
+                    className="w-full px-4 py-2 text-left text-sm flex items-center justify-between hover:bg-slate-100 dark:hover:bg-navy-800/80 transition-colors text-slate-700 dark:text-slate-300"
+                  >
+                    <span>{loc.name}, {loc.country}</span>
+                    <span className="text-[11px] text-slate-400">Hub</span>
+                  </button>
+                ))}
+              </div>
             )}
-          </button>
+          </div>
+        )}
+      </div>
 
-          <button className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-400 rounded-full" />
-          </button>
+      {/* Right: Actions, Theme Switcher & Profile */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Theme Switcher */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-900 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-navy-800"
+          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-5 h-5 text-amber-400" />
+          ) : (
+            <Moon className="w-5 h-5 text-slate-700" />
+          )}
+        </button>
 
-          {/* User avatar placeholder */}
-          <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-            U
+        {/* Notifications Bell */}
+        <button
+          onClick={onOpenNotifications}
+          className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-900 transition-colors relative border border-transparent hover:border-slate-200 dark:hover:border-navy-800"
+          title="Air Quality Alerts & Notifications"
+          aria-label="View notifications"
+        >
+          <Bell className="w-5 h-5" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        </button>
+
+        {/* User Profile Avatar */}
+        <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-navy-800">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-navy-950 font-bold text-sm shadow-md shadow-emerald-500/20">
+            S
+          </div>
+          <div className="hidden lg:flex flex-col text-left">
+            <span className="text-xs font-semibold text-slate-900 dark:text-white leading-tight">
+              Sabir
+            </span>
+            <span className="text-[10px] text-emerald-500 font-medium">
+              CSE (IoT) Engineer
+            </span>
           </div>
         </div>
       </div>
     </header>
   );
 }
-

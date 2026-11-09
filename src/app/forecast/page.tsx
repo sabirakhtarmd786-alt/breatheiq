@@ -18,7 +18,7 @@ export default function ForecastPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [coords, setCoords] = useState({ lat: 28.6139, lon: 77.209 });
-  const [selected, setSelected] = useState<PollutantKey>("pm25");
+  const [selected, setSelected] = useState<PollutantKey>("pm2_5");
   const [source, setSource] = useState("");
 
   const fetchForecast = async (lat: number, lon: number) => {
@@ -47,21 +47,22 @@ export default function ForecastPage() {
 
   // Flatten hourly data for chart
   const chartData = forecast.flatMap((day) =>
-    day.hours.map((h) => ({
+    (day.hours || day.hourly || []).map((h) => ({
       time: h.time,
       label: `${formatDateShort(h.time)} ${h.time.substring(11, 13)}:00`,
-      pm25: h.pm25,
+      pm2_5: h.pm2_5 ?? h.pm25,
+      pm25: h.pm25 ?? h.pm2_5,
       pm10: h.pm10,
       no2: h.no2,
       o3: h.o3,
     }))
   ).slice(0, 72); // next 3 days hourly
 
-  const POLLUTANT_COLORS: Record<PollutantKey, string> = {
-    pm25: "#f97316", pm10: "#fb923c", no2: "#a78bfa", so2: "#facc15", co: "#94a3b8", o3: "#22d3ee",
+  const POLLUTANT_COLORS: Record<string, string> = {
+    pm2_5: "#f97316", pm25: "#f97316", pm10: "#fb923c", no2: "#a78bfa", so2: "#facc15", co: "#94a3b8", o3: "#22d3ee",
   };
 
-  const AVAILABLE: PollutantKey[] = ["pm25", "pm10", "no2", "o3"];
+  const AVAILABLE: PollutantKey[] = ["pm2_5", "pm10", "no2", "o3"];
 
   return (
     <AppShell>

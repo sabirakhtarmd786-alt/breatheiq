@@ -17,7 +17,8 @@ const SEVERITY_COLORS: Record<string, string> = {
 };
 
 function getStationColor(station: Station): string {
-  const pm25 = station.measurements.pm25?.value;
+  const m = (station.measurements || station.pollutants || {}) as Record<string, any>;
+  const pm25 = m.pm25?.value ?? m.pm2_5?.value ?? (typeof m.pm2_5 === 'number' ? m.pm2_5 : undefined);
   if (pm25 === undefined) return SEVERITY_COLORS.unknown;
   if (pm25 < 15) return SEVERITY_COLORS.low;
   if (pm25 < 35) return SEVERITY_COLORS.moderate;
@@ -96,18 +97,22 @@ export default function AirQualityMap() {
             attribution='&copy; <a href="https://www.openstreetmap.org">OpenStreetMap</a> contributors'
           />
 
-          {stations.map((station) => (
-            <CircleMarker
-              key={station.id}
-              center={[station.coordinates.lat, station.coordinates.lon]}
-              radius={12}
-              pathOptions={{
-                fillColor: getStationColor(station),
-                color: "#0f172a",
-                weight: 2,
-                fillOpacity: 0.85,
-              }}
-            >
+          {stations.map((station) => {
+            const lat = station.coordinates?.lat ?? station.latitude;
+            const lon = station.coordinates?.lon ?? station.longitude;
+            if (lat === undefined || lon === undefined) return null;
+            return (
+              <CircleMarker
+                key={station.id}
+                center={[lat, lon]}
+                radius={12}
+                pathOptions={{
+                  fillColor: getStationColor(station),
+                  color: "#0f172a",
+                  weight: 2,
+                  fillOpacity: 0.85,
+                }}
+              >
               <Popup>
                 <div className="min-w-[200px]">
                   <h3 className="font-semibold text-sm mb-1">{station.name}</h3>
@@ -118,14 +123,17 @@ export default function AirQualityMap() {
                     </p>
                   )}
                   <div className="space-y-1">
-                    {Object.entries(station.measurements).map(([key, m]) => {
+                    {Object.entries((station.measurements || station.pollutants || {}) as Record<string, any>).map(([key, m]) => {
                       if (!m) return null;
-                      const info = POLLUTANTS[m.pollutant];
+                      const pKey = (m.pollutant || key) as keyof typeof POLLUTANTS;
+                      const info = POLLUTANTS[pKey] || { name: key.toUpperCase(), unit: "µg/m³" };
+                      const val = typeof m === 'number' ? m : m.value;
+                      if (val === undefined) return null;
                       return (
                         <div key={key} className="flex justify-between text-xs">
                           <span className="font-medium">{info.name}</span>
                           <span>
-                            {m.value.toFixed(1)} {info.unit}
+                            {Number(val).toFixed(1)} {info.unit}
                           </span>
                         </div>
                       );
@@ -142,7 +150,8 @@ export default function AirQualityMap() {
                 </div>
               </Popup>
             </CircleMarker>
-          ))}
+          );
+        })}
         </MapContainer>
       </div>
 

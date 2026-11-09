@@ -23,7 +23,7 @@ interface LocationData {
   error?: string;
 }
 
-const POLLUTANT_KEYS: PollutantKey[] = ["pm25", "pm10", "no2", "so2", "co", "o3"];
+const POLLUTANT_KEYS: PollutantKey[] = ["pm2_5", "pm10", "no2", "so2", "co", "o3"];
 
 export default function ComparisonPage() {
   const [locations, setLocations] = useState<LocationData[]>([]);

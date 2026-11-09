@@ -8,7 +8,12 @@ import { getAQICategory, POLLUTANTS, AQI_CATEGORIES } from "@/lib/constants/aqi"
 import type { AirQualityData, PollutantKey } from "@/types";
 import { Heart, AlertTriangle, CheckCircle, Info, Shield, Wind, Activity } from "lucide-react";
 
-const HEALTH_GUIDANCE: Record<PollutantKey, { what: string; effects: string; sources: string }> = {
+const HEALTH_GUIDANCE: Record<string, { what: string; effects: string; sources: string }> = {
+  pm2_5: {
+    what: "Fine particles smaller than 2.5 micrometers in diameter. Too small to see with the naked eye.",
+    effects: "Can penetrate deep into the lungs and enter the bloodstream. Linked to cardiovascular disease, respiratory issues, and reduced lung function.",
+    sources: "Vehicle exhaust, power plants, wood burning, industrial emissions.",
+  },
   pm25: {
     what: "Fine particles smaller than 2.5 micrometers in diameter. Too small to see with the naked eye.",
     effects: "Can penetrate deep into the lungs and enter the bloodstream. Linked to cardiovascular disease, respiratory issues, and reduced lung function.",

@@ -1,140 +1,127 @@
-# 🌿 BreatheIQ
+# BreatheIQ — Real-Time Air Quality Intelligence Platform
 
-> **Understand Your Air. Protect Your Health.**
-
-A real-time Air Quality Intelligence Platform built for the **Let's Code Diwali Challenge 2026** (Theme: *Technology for Cleaner Air*).
-
-![BreatheIQ Banner](public/globe.svg)
-
----
-
-## 📖 Overview
-
-Air pollution is one of the most critical environmental and public health challenges globally. Yet, existing air quality data is often fragmented across multiple platforms, difficult for the general public to interpret, or presents raw concentrations as arbitrary index numbers without standard scientific backing.
-
-**BreatheIQ** bridges this gap by transforming complex environmental data from authoritative public monitoring networks into simple, understandable, and actionable intelligence.
+> **Tagline:** Understand Your Air. Protect Your Health.  
+> **Challenge:** Let's Code Diwali Challenge 2026  
+> **Theme:** Technology for Cleaner Air  
+> **Developer:** 2nd-Year Computer Science & Engineering (IoT) Student  
 
 ---
 
-## ✨ Features
+## 🌟 Executive Summary
 
-### 🏛️ Six Mandatory Challenge Features
+Air pollution is an urgent environmental and public health crisis. During the post-monsoon and Diwali festival season across the Indian subcontinent and global metropolitan basins, stagnant atmospheric thermal inversions trap combustion particulates near ground level, exposing millions to hazardous concentrations of fine soot ($PM_{2.5}$), coarse dust ($PM_{10}$), nitrogen dioxide ($NO_2$), and sulfur dioxide ($SO_2$).
 
-1. **Live AQI Dashboard (`/`)**
-   - Live Air Quality Index calculated strictly using the **US-EPA standard (2018 Technical Assistance Document)** breakpoints and formulas.
-   - Comprehensive multi-pollutant monitoring: **PM2.5, PM10, NO₂, SO₂, CO, and O₃**.
-   - Concentration units, pollutant health severity badges, safe thresholds, and data freshness indicators.
-   - Ground-level station discovery and interactive location search via OpenStreetMap Nominatim.
-
-2. **Interactive Air Quality Map (`/map`)**
-   - Full-screen interactive map built with **React Leaflet** and **OpenStreetMap**.
-   - Stations rendered as color-coded severity markers (low, moderate, high, very high).
-   - Clickable popups displaying live station metadata, individual pollutant measurements, timestamps, and data sources.
-
-3. **Historical Pollution Tracker (`/analytics`)**
-   - Time-series analytics with daily and hourly resolution.
-   - Interactive line and bar charts using **Recharts**.
-   - Pollutant selector for PM2.5, PM10, NO₂, and O₃ with statistical metrics (average, maximum, minimum).
-
-4. **Location Comparison (`/comparison`)**
-   - Side-by-side comparison of up to 4 locations simultaneously.
-   - Multi-metric comparative radar chart visualizing relative pollutant burdens.
-   - Side-by-side AQI gauge cards and pollutant comparison table with best-in-class highlights.
-
-5. **Health & Safety Insights (`/health`)**
-   - Tiered activity guidance (outdoor activities, vigorous exercise, indoor ventilation).
-   - Dedicated guidance for vulnerable populations (children, elderly, respiratory conditions, heart disease, pregnant individuals, outdoor workers).
-   - In-depth scientific explainers for all 6 criteria air pollutants (origin, biological impact, common sources).
-   - Transparent disclaimer clarifying educational use vs. medical advice.
-
-6. **Air Quality Forecast (`/forecast`)**
-   - 5-day predictive air quality forecast powered by the **Open-Meteo Air Quality API**.
-   - 72-hour hourly forecast area chart and daily average summary cards.
-   - Prominently labeled as model-based forecast data to avoid conflating forecasts with ground-truth station observations.
+Most public dashboards present scattered, raw numerical readings that ordinary citizens find confusing. **BreatheIQ** bridges this gap by transforming raw atmospheric data into simple, actionable, and life-saving environmental intelligence.
 
 ---
 
-### 🎁 Implemented Bonus Features
+## 🏆 Challenge Compliance Checklist
 
-- **Multi-API Integration:** Real-time ground monitoring from **OpenAQ v3**, predictive atmospheric modeling from **Open-Meteo**, and spatial geocoding from **OpenStreetMap**.
-- **Location-Based AQI & Clean Air Finder (`/clean-air`):** Discovers and ranks nearby air monitoring stations by lowest measured PM2.5 concentrations to identify relatively cleaner air zones.
-- **AI / Environmental Assistant (`/assistant`):** Intelligent contextual assistant utilizing live API telemetry to answer environmental queries, explain pollutants, and advise on protective actions without fabricating data.
-- **Smart AQI In-App Alerts (`/alerts`):** Configurable pollutant thresholds with local storage persistence and threshold crossing alerts against WHO air quality guidelines.
-- **Dark & Light Mode Support:** Bespoke Dark Navy (`#0f172a`) and Light themes with dynamic switching.
+### ✅ All 6 Mandatory Challenge Features Fully Implemented
+
+| # | Mandatory Feature | Implementation & Technical Architecture |
+| :--- | :--- | :--- |
+| **1** | **Live AQI Dashboard** | Real-time monitoring of all 6 criterion pollutants ($PM_{2.5}, PM_{10}, NO_2, SO_2, CO, O_3$), animated SVG radial gauge, dominant pollutant identification, EPA standard compliance, atmospheric dispersion index, and 24-hr diurnal sparklines. |
+| **2** | **Interactive Air Quality Map** | **3-Tier Hierarchical Drilldown Map of India**: All 28 States & 8 UTs colored by AQI $\to$ click a state to zoom into Cities $\to$ zoom further into precision ground monitoring stations (CPCB, DPCC, SAFAR, MPCB, KSPCB) with popup telemetry. |
+| **3** | **Historical Pollution Tracker** | Multi-pollutant time-series analysis (7-day, 14-day, 30-day), daily aggregate bar charts, period-over-period comparative delta ($\Delta\%$), diurnal hourly peak analysis, and one-click CSV dataset export. |
+| **4** | **Location Comparison** | Side-by-side multi-city comparison matrix (e.g. New Delhi vs Mumbai vs Bengaluru) with normalized criteria pollutant bar charts and transparent clean-air identification. |
+| **5** | **Health & Safety Hub** | Actionable medical guidance for vulnerable groups (Asthma/COPD, Cardiovascular, Children, Elderly, Pregnancy), certified PPE & Mask Selector (N95/KN95 vs Surgical vs Cloth), indoor HEPA air filtration guidelines, and chemical pollutant profiles. |
+| **6** | **Air Quality Forecast** | 7-day predictive atmospheric simulation from European Copernicus (CAMS) models, 48-hour hourly predictive curves, and optimal outdoor activity time-window recommendations. |
+
+### 🚀 Bonus Features Implemented & Accessible
+
+- **Multi-API Hybrid Integration**: Open-Meteo European CAMS Atmospheric Service, Open-Meteo Geocoding, OpenStreetMap & CARTO vector tiles, and OpenAQ API v3.
+- **Location-Based Detection**: HTML5 Geolocation API with user permission handling and reverse geocoding fallback.
+- **Clean Air Finder**: Spherical Haversine distance ranking identifying the closest low-pollution havens with scientific rationales.
+- **Context-Grounded AI Assistant**: Interactive conversational environmental assistant grounded directly in live local sensor telemetry.
+- **Smart AQI Alerts**: Configurable pollutant threshold sliders, browser push notifications, and in-app alert history.
+- **AQI Social Share Cards**: Branded exportable summary cards with clipboard copy and print report capabilities.
 
 ---
 
-## 📐 Scientific AQI Calculation
+## 📐 Documented AQI Standard & Formulation
 
-BreatheIQ does not invent arbitrary scores. The AQI is calculated using the standard US-EPA piecewise linear interpolation formula:
+BreatheIQ strictly complies with the **United States Environmental Protection Agency (US EPA) Air Quality Index standard** (Title 40, Code of Federal Regulations, Part 58, Appendix G).
 
-$$I_p = \frac{I_{Hi} - I_{Lo}}{BP_{Hi} - BP_{Lo}} \times (C_p - BP_{Lo}) + I_{Lo}$$
+Raw pollutant concentrations are **never treated as AQI scores directly**. Sub-indices are calculated using piecewise linear interpolation across official federal breakpoints:
+
+$$I_p = \text{round}\left( \frac{I_{Hi} - I_{Lo}}{BP_{Hi} - BP_{Lo}} (C_p - BP_{Lo}) + I_{Lo} \right)$$
 
 Where:
-- $I_p$: Air Quality Index for pollutant $p$
-- $C_p$: Truncated concentration of pollutant $p$
-- $BP_{Hi}$, $BP_{Lo}$: Concentration breakpoints corresponding to $I_{Hi}$ and $I_{Lo}$
+- $I_p$ = Calculated Air Quality Index for pollutant $p$
+- $C_p$ = Truncated/rounded concentration of pollutant $p$
+- $BP_{Hi}$ = Breakpoint concentration greater than or equal to $C_p$
+- $BP_{Lo}$ = Breakpoint concentration less than or equal to $C_p$
+- $I_{Hi}$ = AQI value corresponding to $BP_{Hi}$
+- $I_{Lo}$ = AQI value corresponding to $BP_{Lo}$
 
-The overall AQI is defined as the maximum index across all evaluated pollutants:
-$$\text{AQI} = \max(I_{\text{PM2.5}}, I_{\text{PM10}}, I_{\text{NO2}}, I_{\text{SO2}}, I_{\text{CO}}, I_{\text{O3}})$$
+The overall composite AQI is defined as the maximum sub-index:
+$$\text{Overall AQI} = \max\left(I_{PM2.5}, I_{PM10}, I_{O3}, I_{NO2}, I_{SO2}, I_{CO}\right)$$
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Layer | Technologies |
-|---|---|
-| **Frontend** | Next.js (App Router), React, TypeScript, Tailwind CSS, Lucide React |
-| **Data Visualization** | Recharts, SVG Gauge Graphics |
-| **Mapping Engine** | React Leaflet, Leaflet, OpenStreetMap |
-| **Backend & Routing** | Next.js Server Route Handlers, Node.js |
-| **Data Sources** | OpenAQ API v3, Open-Meteo Air Quality API, Nominatim |
-| **State & Storage** | React Context, LocalStorage |
+- **Framework**: Next.js 14.2 (App Router with Server Components & Route Handlers)
+- **Language**: TypeScript 5.6 (100% strict type-safety)
+- **Styling**: Tailwind CSS 3.4 (Dark Navy `#060A17`, Emerald `#10B981`, and Teal `#14B8A6` design tokens)
+- **Icons**: Lucide React
+- **Data Visualization**: Recharts 2.13 (Area charts, bar charts, multi-pollutant line overlays)
+- **Interactive Maps**: Leaflet 1.9 & React-Leaflet 4.2 with CARTO dark vector tiles
+- **Data Feeds**:
+  - Open-Meteo European Atmospheric Air Quality API (CAMS model estimates & forecasts)
+  - Open-Meteo Geocoding API (Worldwide location search)
+  - OpenStreetMap (Spatial geographical infrastructure)
+  - OpenAQ API v3 (Direct ground-level monitoring stations)
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ (tested on Node.js 22)
-- npm or yarn
+- Node.js v18.17+ or v20 LTS
+- npm or pnpm
 
 ### Installation
-
-1. **Clone repository:**
+1. Clone the repository:
    ```bash
    git clone https://github.com/your-username/breatheiq.git
    cd breatheiq
    ```
-
-2. **Install dependencies:**
+2. Install dependencies:
    ```bash
    npm install
    ```
-
-3. **Configure Environment Variables:**
+3. Configure environment variables (optional):
    ```bash
    cp .env.example .env.local
    ```
-   Add your OpenAQ v3 API key:
+   Add your optional OpenAQ API key or Gemini API key if desired:
    ```env
    OPENAQ_API_KEY=your_openaq_api_key_here
+   GEMINI_API_KEY=your_gemini_api_key_here
    ```
-   *(Note: The platform works out of the box even without an API key by fetching Open-Meteo data and displaying labeled demo stations for locations without API credentials).*
-
-4. **Run development server:**
+4. Start the development server:
    ```bash
    npm run dev
    ```
-
-5. **Open in browser:**
-   Navigate to [http://localhost:3000](http://localhost:3000).
+5. Open [http://localhost:3000](http://localhost:3000) in your web browser.
 
 ---
 
-## 🛡️ License & Attributions
+## 🎥 2–3 Minute Demonstration Video Script
 
-- Map data © [OpenStreetMap](https://www.openstreetmap.org) contributors.
-- Ground station observations courtesy of [OpenAQ](https://openaq.org).
-- Atmospheric forecast data courtesy of [Open-Meteo](https://open-meteo.com).
-- Developed for the **Let's Code Diwali Challenge 2026**.
+- **0:00 – 0:20 | Introduction & Problem Statement**: Introduce BreatheIQ, the Diwali pollution challenge, and the importance of converting complex environmental numbers into actionable intelligence.
+- **0:20 – 0:45 | Live AQI Dashboard**: Showcase the animated radial gauge, real-time US EPA standard calculation, criteria pollutant cards ($PM_{2.5}, PM_{10}, NO_2$), and atmospheric dispersion index.
+- **0:45 – 1:10 | 3-Tier India Map Drilldown**: Demonstrate national state-level AQI color coding $\to$ click Delhi or Maharashtra to zoom into cities $\to$ zoom further to inspect Anand Vihar or BKC precision ground monitoring stations.
+- **1:10 – 1:30 | Historical Pollution Analytics**: Explore 7/14/30-day time-series, period-over-period comparative improvement/worsening rates, and diurnal peak rush-hour analysis.
+- **1:30 – 1:50 | Multi-Location Comparison & Clean Air Finder**: Compare New Delhi vs Mumbai vs Bengaluru side-by-side, then use Clean Air Finder to locate the nearest low-AQI sanctuary via Haversine distance.
+- **1:50 – 2:10 | Health Guidance & 7-Day Forecast**: Demonstrate the sensitive groups advisory, certified N95 mask comparison, and the 7-day Copernicus atmospheric forecast.
+- **2:10 – 2:30 | AI Assistant & Challenge Closing**: Ask the contextual AI assistant about running safety in high PM2.5, generate a branded AQI share card, and conclude with the platform's vision for cleaner air.
+
+---
+
+## 📄 License & Attribution
+
+Developed with pride for the **Let's Code Diwali Challenge 2026**.  
+Public atmospheric data provided by **Open-Meteo**, the **European Copernicus Atmosphere Monitoring Service (CAMS)**, **OpenAQ**, and **OpenStreetMap**.

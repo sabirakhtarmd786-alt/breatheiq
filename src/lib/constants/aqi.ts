@@ -5,7 +5,15 @@
 
 import type { PollutantKey, Pollutant } from "@/types";
 
-export const POLLUTANTS: Record<PollutantKey, Pollutant> = {
+export const POLLUTANTS: Record<PollutantKey, Pollutant> & Record<'pm25', Pollutant> = {
+  pm2_5: {
+    key: "pm2_5",
+    name: "PM2.5",
+    fullName: "Fine Particulate Matter",
+    unit: "µg/m³",
+    description:
+      "Fine particles smaller than 2.5 micrometers that can penetrate deep into lungs and bloodstream.",
+  },
   pm25: {
     key: "pm25",
     name: "PM2.5",

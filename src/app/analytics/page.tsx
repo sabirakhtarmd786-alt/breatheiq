@@ -12,18 +12,18 @@ import {
 } from "recharts";
 import type { PollutantKey } from "@/types";
 
-const POLLUTANT_COLORS: Record<PollutantKey, string> = {
-  pm25: "#f97316", pm10: "#fb923c", no2: "#a78bfa",
+const POLLUTANT_COLORS: Record<string, string> = {
+  pm2_5: "#f97316", pm25: "#f97316", pm10: "#fb923c", no2: "#a78bfa",
   so2: "#facc15", co: "#94a3b8", o3: "#22d3ee",
 };
 
-const AVAILABLE_POLLUTANTS: PollutantKey[] = ["pm25", "pm10", "no2", "o3"];
+const AVAILABLE_POLLUTANTS: PollutantKey[] = ["pm2_5", "pm10", "no2", "o3"];
 
 export default function AnalyticsPage() {
   const [data, setData] = useState<Record<string, { time: string; value: number }[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<PollutantKey>("pm25");
+  const [selected, setSelected] = useState<PollutantKey>("pm2_5");
   const [view, setView] = useState<"hourly" | "daily">("hourly");
   const [coords, setCoords] = useState({ lat: 28.6139, lon: 77.209 });
   const [source, setSource] = useState("");

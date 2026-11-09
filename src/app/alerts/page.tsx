@@ -7,7 +7,8 @@ import { Bell, Plus, Trash2, AlertTriangle, CheckCircle, Info } from "lucide-rea
 import { POLLUTANTS } from "@/lib/constants/aqi";
 import type { PollutantKey, Alert } from "@/types";
 
-const DEFAULT_THRESHOLDS: Record<PollutantKey, { value: number; label: string }> = {
+const DEFAULT_THRESHOLDS: Record<string, { value: number; label: string }> = {
+  pm2_5: { value: 35, label: "WHO 24h guideline" },
   pm25: { value: 35, label: "WHO 24h guideline" },
   pm10: { value: 100, label: "WHO 24h guideline" },
   no2: { value: 200, label: "WHO 1h guideline" },
@@ -18,7 +19,7 @@ const DEFAULT_THRESHOLDS: Record<PollutantKey, { value: number; label: string }>
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [addPollutant, setAddPollutant] = useState<PollutantKey>("pm25");
+  const [addPollutant, setAddPollutant] = useState<PollutantKey>("pm2_5");
   const [addThreshold, setAddThreshold] = useState(35);
 
   // Load from localStorage
@@ -54,7 +55,7 @@ export default function AlertsPage() {
     save(alerts.filter((a) => a.id !== id));
   };
 
-  const POLLUTANT_KEYS: PollutantKey[] = ["pm25", "pm10", "no2", "so2", "co", "o3"];
+  const POLLUTANT_KEYS: PollutantKey[] = ["pm2_5", "pm10", "no2", "so2", "co", "o3"];
 
   return (
     <AppShell>
@@ -85,7 +86,7 @@ export default function AlertsPage() {
                 onChange={(e) => {
                   const p = e.target.value as PollutantKey;
                   setAddPollutant(p);
-                  setAddThreshold(DEFAULT_THRESHOLDS[p].value);
+                  setAddThreshold(DEFAULT_THRESHOLDS[p]?.value ?? 35);
                 }}
                 className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 outline-none"
               >
@@ -106,7 +107,7 @@ export default function AlertsPage() {
               />
             </div>
             <div className="text-xs text-slate-500 pb-2">
-              Reference: {DEFAULT_THRESHOLDS[addPollutant].label}
+              Reference: {DEFAULT_THRESHOLDS[addPollutant]?.label || "Advisory threshold"}
             </div>
             <button onClick={addAlert}
               className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm rounded-xl transition-colors ml-auto">
@@ -127,7 +128,7 @@ export default function AlertsPage() {
           <div className="space-y-3">
             <h2 className="font-semibold text-slate-200">Your Alerts ({alerts.length})</h2>
             {alerts.map((alert) => {
-              const info = POLLUTANTS[alert.pollutant];
+              const info = (POLLUTANTS as Record<string, any>)[alert.pollutant] || POLLUTANTS.pm2_5;
               return (
                 <Card key={alert.id} className={`p-4 ${!alert.enabled ? "opacity-50" : ""}`}>
                   <div className="flex items-center gap-4">
@@ -174,8 +175,8 @@ export default function AlertsPage() {
                   <span className="text-xs text-slate-500 ml-2">{POLLUTANTS[p].fullName}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm text-slate-300">{DEFAULT_THRESHOLDS[p].value} {POLLUTANTS[p].unit}</span>
-                  <p className="text-xs text-slate-500">{DEFAULT_THRESHOLDS[p].label}</p>
+                  <span className="text-sm text-slate-300">{DEFAULT_THRESHOLDS[p]?.value ?? 35} {POLLUTANTS[p]?.unit}</span>
+                  <p className="text-xs text-slate-500">{DEFAULT_THRESHOLDS[p]?.label || ""}</p>
                 </div>
               </div>
             ))}

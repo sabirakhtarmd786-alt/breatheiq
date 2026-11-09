@@ -24,12 +24,12 @@ export async function POST(request: Request) {
       const stationsData = stations.status === "fulfilled" ? stations.value : [];
       const meteoData = meteo.status === "fulfilled" ? meteo.value : null;
 
-      const measurements: Partial<Record<PollutantKey, Measurement>> = {};
-      const pollutants: PollutantKey[] = ["pm25", "pm10", "no2", "so2", "co", "o3"];
+      const measurements: Partial<Record<string, Measurement>> = {};
+      const pollutants: string[] = ["pm25", "pm2_5", "pm10", "no2", "so2", "co", "o3"];
 
       for (const station of stationsData) {
         for (const p of pollutants) {
-          if (!measurements[p] && station.measurements[p]) {
+          if (!measurements[p] && station.measurements?.[p]) {
             measurements[p] = station.measurements[p]!;
           }
         }
@@ -37,8 +37,8 @@ export async function POST(request: Request) {
 
       if (meteoData?.current) {
         const c = meteoData.current;
-        const meteoMap: Partial<Record<PollutantKey, number | undefined>> = {
-          pm25: c.pm25, pm10: c.pm10, no2: c.no2, o3: c.o3, co: c.co, so2: c.so2,
+        const meteoMap: Record<string, number | undefined> = {
+          pm25: c.pm25, pm2_5: c.pm25, pm10: c.pm10, no2: c.no2, o3: c.o3, co: c.co, so2: c.so2,
         };
         for (const [key, val] of Object.entries(meteoMap)) {
           const p = key as PollutantKey;

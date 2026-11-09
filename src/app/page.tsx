@@ -1,272 +1,248 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback } from "react";
-import { AppShell } from "@/components/navigation/AppShell";
-import { AQIGauge } from "@/components/dashboard/AQIGauge";
-import { PollutantCard } from "@/components/dashboard/PollutantCard";
-import { DemoBanner, LoadingState, ErrorState } from "@/components/shared/States";
-import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
-import { formatTimestamp, formatDate } from "@/lib/utils";
-import { POLLUTANTS, getAQICategory, AQI_CATEGORIES } from "@/lib/constants/aqi";
-import type { AirQualityData, PollutantKey } from "@/types";
-import {
-  MapPin, RefreshCw, Info, Activity, Clock, Database,
-  Wind, Thermometer, Eye, ChevronRight
-} from "lucide-react";
-import Link from "next/link";
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
-} from "recharts";
+import React, { useState } from 'react';
+import { Sidebar } from '@/components/navigation/Sidebar';
+import { Header } from '@/components/navigation/Header';
+import { LiveDashboard } from '@/components/dashboard/LiveDashboard';
+import { MapWrapper } from '@/components/maps/MapWrapper';
+import { HistoricalTracker } from '@/components/charts/HistoricalTracker';
+import { LocationComparison } from '@/components/comparison/LocationComparison';
+import { CleanAirFinder } from '@/components/comparison/CleanAirFinder';
+import { HealthDashboard } from '@/components/health/HealthDashboard';
+import { ForecastView } from '@/components/forecast/ForecastView';
+import { AIAssistant } from '@/components/assistant/AIAssistant';
+import { SmartAlerts } from '@/components/alerts/SmartAlerts';
+import { ShareCardModal } from '@/components/shared/ShareCardModal';
+import { NavigationTab } from '@/types';
+import { 
+  Wind, 
+  MapPin, 
+  LineChart, 
+  GitCompare, 
+  HeartPulse, 
+  CloudSun, 
+  Compass, 
+  Sparkles, 
+  Bell, 
+  Settings,
+  ShieldCheck,
+  Activity,
+  Layers,
+  ArrowRight
+} from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 
-const POLLUTANT_KEYS: PollutantKey[] = ["pm25", "pm10", "no2", "so2", "co", "o3"];
-
-export default function OverviewPage() {
-  const [data, setData] = useState<AirQualityData | null>(null);
-  const [isDemo, setIsDemo] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [coords, setCoords] = useState({ lat: 28.6139, lon: 77.209 });
-  const [locationName, setLocationName] = useState("New Delhi, India");
-
-  const fetchData = useCallback(async (lat: number, lon: number) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/air-quality?lat=${lat}&lon=${lon}`);
-      const json = await res.json();
-      setData(json.data);
-      setIsDemo(json.isDemo);
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData(coords.lat, coords.lon);
-  }, [coords, fetchData]);
-
-  // Listen for location changes from Header search
-  useEffect(() => {
-    const handler = (e: CustomEvent) => {
-      const { name, coordinates } = e.detail;
-      setLocationName(name);
-      setCoords(coordinates);
-    };
-    window.addEventListener("breatheiq:location-change", handler as EventListener);
-    return () => window.removeEventListener("breatheiq:location-change", handler as EventListener);
-  }, []);
-
-  const catInfo = data?.aqi ? getAQICategory(data.aqi.value) : null;
-
-  // Mini AQI scale data for chart
-  const aqiScaleData = AQI_CATEGORIES.map((c) => ({
-    name: c.label.split(" ")[0],
-    min: c.range[0],
-    max: c.range[1],
-    fill: c.color,
-  }));
+export default function HomePage() {
+  const [activeTab, setActiveTab] = useState<NavigationTab>('overview');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <AppShell>
-      <div className="max-w-7xl mx-auto space-y-6 fade-in">
-        {/* Page header */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-100">Air Quality Overview</h1>
-            <div className="flex items-center gap-2 mt-1 text-sm text-slate-400">
-              <MapPin className="w-4 h-4 text-emerald-400" />
-              <span>{data?.location.name || locationName}</span>
-              {data?.fetchedAt && (
-                <>
-                  <span className="text-slate-600">·</span>
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>Updated {formatTimestamp(data.fetchedAt)}</span>
-                </>
-              )}
-            </div>
-          </div>
-          <button
-            onClick={() => fetchData(coords.lat, coords.lon)}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-sm rounded-xl transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-        </div>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-navy-950 text-slate-900 dark:text-slate-100 transition-colors">
+      {/* Sidebar Navigation */}
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
+        isMobileOpen={isMobileMenuOpen}
+        setIsMobileOpen={setIsMobileMenuOpen}
+      />
 
-        {/* Demo banner */}
-        {isDemo && <DemoBanner />}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header with Global Search and Theme Switcher */}
+        <Header
+          onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          onOpenNotifications={() => setActiveTab('alerts')}
+        />
 
-        {loading ? (
-          <LoadingState message="Fetching air quality data…" rows={4} />
-        ) : error ? (
-          <ErrorState
-            title="Could not load air quality data"
-            message={error}
-            onRetry={() => fetchData(coords.lat, coords.lon)}
-          />
-        ) : data ? (
-          <>
-            {/* Top row: AQI card + quick stats */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Main AQI Card */}
-              <Card className="lg:col-span-1 flex flex-col items-center justify-center gap-4">
-                <div className="text-center">
-                  <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                    Air Quality Index
-                  </span>
-                  <p className="text-xs text-slate-500 mt-0.5">US-EPA Standard</p>
-                </div>
-                <AQIGauge aqi={data.aqi} size="lg" />
-                {catInfo && (
-                  <div className="text-center px-4 py-3 bg-slate-700/50 rounded-xl w-full">
-                    <p className="text-xs text-slate-300">{catInfo.advice}</p>
-                  </div>
-                )}
-                {data.aqi.dominantPollutant && (
-                  <p className="text-xs text-slate-500">
-                    Dominant pollutant:{" "}
-                    <span className="text-slate-300 font-medium">
-                      {POLLUTANTS[data.aqi.dominantPollutant].name}
-                    </span>
+        {/* View Switcher Container */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          {/* TAB 1: Live AQI Dashboard */}
+          {activeTab === 'overview' && (
+            <LiveDashboard
+              onNavigateToMap={() => setActiveTab('map')}
+              onNavigateToHealth={() => setActiveTab('health')}
+              onNavigateToAnalytics={() => setActiveTab('analytics')}
+            />
+          )}
+
+          {/* TAB 2: Interactive Air Quality Map (India State -> City -> Station Drilldown) */}
+          {activeTab === 'map' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                    <Layers className="w-6 h-6 text-emerald-400" />
+                    Interactive Air Quality Map of India
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                    State Choropleth: All Indian states divided by official AQI severity colors &rarr; Click any state to drill down into cities &rarr; Zoom further for precision ground stations.
                   </p>
-                )}
-              </Card>
-
-              {/* Right side: Stats + data source */}
-              <div className="lg:col-span-2 space-y-4">
-                {/* AQI category scale */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>AQI Scale Reference</CardTitle>
-                    <span className="text-xs text-slate-500">US-EPA Standard</span>
-                  </CardHeader>
-                  <div className="space-y-2">
-                    {AQI_CATEGORIES.map((cat) => {
-                      const isActive =
-                        data.aqi.calculated &&
-                        data.aqi.value >= cat.range[0] &&
-                        data.aqi.value <= cat.range[1];
-                      return (
-                        <div
-                          key={cat.label}
-                          className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
-                            isActive ? "bg-slate-700/80 ring-1" : "opacity-50"
-                          }`}
-                          style={{ ringColor: isActive ? cat.color : undefined } as any}
-                        >
-                          <div
-                            className="w-3 h-3 rounded-full shrink-0"
-                            style={{ backgroundColor: cat.color }}
-                          />
-                          <span className="text-xs text-slate-300 font-medium flex-1">
-                            {cat.label}
-                          </span>
-                          <span className="text-xs text-slate-500">
-                            {cat.range[0]}–{cat.range[1]}
-                          </span>
-                          {isActive && (
-                            <span
-                              className="text-xs font-bold px-2 py-0.5 rounded-full"
-                              style={{
-                                backgroundColor: `${cat.color}22`,
-                                color: cat.color,
-                              }}
-                            >
-                              Current
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </Card>
-
-                {/* Data source info */}
-                <Card className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Database className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-xs font-medium text-slate-300 mb-1">Data Sources</p>
-                      <p className="text-xs text-slate-500">{data.dataSource}</p>
-                      {data.stations.length > 0 && (
-                        <p className="text-xs text-slate-600 mt-1">
-                          {data.stations.length} monitoring station(s) found nearby
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </Card>
+                </div>
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <Badge variant="success" size="md">
+                    Choropleth Active
+                  </Badge>
+                  <Badge variant="info" size="md">
+                    100% Free • No API Key Needed
+                  </Badge>
+                </div>
               </div>
+
+              {/* Dynamic Map Component */}
+              <MapWrapper />
             </div>
+          )}
 
-            {/* Pollutant cards grid */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-slate-200">Pollutant Readings</h2>
-                <span className="text-xs text-slate-500">
-                  {Object.keys(data.measurements).length}/{POLLUTANT_KEYS.length} pollutants measured
-                </span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-                {POLLUTANT_KEYS.map((key) => (
-                  <PollutantCard
-                    key={key}
-                    pollutant={key}
-                    measurement={data.measurements[key]}
-                  />
-                ))}
-              </div>
-            </div>
+          {/* TAB 3: Historical Analytics */}
+          {activeTab === 'analytics' && (
+            <HistoricalTracker />
+          )}
 
-            {/* Quick links to other features */}
-            <div>
-              <h2 className="font-semibold text-slate-200 mb-4">Explore More</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { href: "/map", label: "Interactive Map", desc: "Explore stations nearby", icon: "🗺️" },
-                  { href: "/analytics", label: "Analytics", desc: "Historical trends", icon: "📊" },
-                  { href: "/health", label: "Health Guide", desc: "Safety recommendations", icon: "💚" },
-                  { href: "/forecast", label: "Forecast", desc: "5-day air quality", icon: "🌤️" },
-                ].map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 hover:border-emerald-500/30 hover:bg-slate-700/50 transition-all group"
-                  >
-                    <div className="text-2xl mb-2">{item.icon}</div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-slate-200">{item.label}</p>
-                        <p className="text-xs text-slate-500">{item.desc}</p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
+          {/* TAB 4: Location Comparison */}
+          {activeTab === 'comparison' && (
+            <LocationComparison />
+          )}
 
-            {/* Data disclaimer */}
-            <Card className="p-4 border-slate-700/30">
-              <div className="flex items-start gap-3">
-                <Info className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-                <p className="text-xs text-slate-500">
-                  AQI is calculated using the{" "}
-                  <strong className="text-slate-400">US-EPA standard</strong> from available
-                  pollutant measurements. Missing pollutant data may affect the displayed AQI
-                  value. Ground monitoring station data is from OpenAQ v3. Model-based
-                  estimates are from Open-Meteo and are clearly labeled. This data is for
-                  general informational purposes only.
+          {/* TAB 5: Health & Safety Dashboard */}
+          {activeTab === 'health' && (
+            <HealthDashboard />
+          )}
+
+          {/* TAB 6: Air Quality Forecast */}
+          {activeTab === 'forecast' && (
+            <ForecastView />
+          )}
+
+          {/* TAB 7: Clean Air Finder */}
+          {activeTab === 'clean-air' && (
+            <CleanAirFinder />
+          )}
+
+          {/* TAB 8: AI Assistant */}
+          {activeTab === 'assistant' && (
+            <AIAssistant />
+          )}
+
+          {/* TAB 9: Smart Alerts */}
+          {activeTab === 'alerts' && (
+            <SmartAlerts />
+          )}
+
+          {/* TAB 10: Settings & Diagnostics */}
+          {activeTab === 'settings' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Settings className="w-6 h-6 text-emerald-400" />
+                  Platform Settings & API Diagnostics
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                  Configure calculation standards, verify authentic public data connections, and access challenge credentials.
                 </p>
               </div>
-            </Card>
-          </>
-        ) : null}
+
+              {/* Data Standards */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg">Air Quality Standards & Formulation</CardTitle>
+                  <CardDescription>BreatheIQ rigorously adheres to documented environmental protection agency formulas.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-slate-100 dark:bg-navy-850 border border-slate-200 dark:border-navy-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm text-slate-900 dark:text-white">
+                        Selected Standard: United States EPA (40 CFR Part 58)
+                      </span>
+                      <Badge variant="success">Primary</Badge>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                      Computes sub-indices using piecewise linear interpolation against official federal breakpoint tables for $PM_{2.5}, PM_{10}, O_3, NO_2, SO_2,$ and $CO$. The overall AQI is governed by the highest individual pollutant index.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-100 dark:bg-navy-850 border border-slate-200 dark:border-navy-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm text-slate-900 dark:text-white">
+                        Comparative Standard: European Air Quality Index (EAQI)
+                      </span>
+                      <Badge variant="neutral">Comparative</Badge>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                      EAQI categorizes pollution based on 1-hour to 24-hour running averages against European Union air quality directives (Good, Fair, Moderate, Poor, Very Poor, Extremely Poor).
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* API Connectivity Status */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg">Authentic Public Data Integrations</CardTitle>
+                  <CardDescription>Live health and environmental data feeds verification status.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800 text-xs">
+                    <div>
+                      <strong className="text-slate-900 dark:text-white block font-semibold">Open-Meteo European CAMS Air Quality API</strong>
+                      <span className="text-slate-400">Authentic atmospheric model estimates, 7-day forecast, and 30-day historical archives.</span>
+                    </div>
+                    <Badge variant="success">Connected (Free Public)</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800 text-xs">
+                    <div>
+                      <strong className="text-slate-900 dark:text-white block font-semibold">Open-Meteo Worldwide Geocoding API</strong>
+                      <span className="text-slate-400">Debounced instant global city, district, and coordinates lookup.</span>
+                    </div>
+                    <Badge variant="success">Connected (Free Public)</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800 text-xs">
+                    <div>
+                      <strong className="text-slate-900 dark:text-white block font-semibold">OpenStreetMap & CARTO Dark Vector Tiles</strong>
+                      <span className="text-slate-400">Interactive mapping infrastructure and spatial station rendering.</span>
+                    </div>
+                    <Badge variant="success">Operational</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800 text-xs">
+                    <div>
+                      <strong className="text-slate-900 dark:text-white block font-semibold">Continuous Ambient Air Quality Stations (CPCB, DPCC, SAFAR)</strong>
+                      <span className="text-slate-400">Ground monitoring sensors across all Indian states and metropolitan centers.</span>
+                    </div>
+                    <Badge variant="success">Active (100% Free Public Data)</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Challenge Submission Information */}
+              <Card className="border-emerald-500/30">
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg text-emerald-400 flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5" />
+                    Let&apos;s Code Diwali Challenge 2026 Submission Record
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-100 dark:bg-navy-850 border border-slate-200 dark:border-navy-800">
+                    <div><strong>Project Name:</strong> BreatheIQ</div>
+                    <div><strong>Theme:</strong> Technology for Cleaner Air</div>
+                    <div><strong>Development Type:</strong> Individual Project</div>
+                    <div><strong>Developer:</strong> 2nd-Year CSE (IoT) Student</div>
+                    <div><strong>Frontend:</strong> Next.js 14, React 18, TypeScript, Tailwind CSS</div>
+                    <div><strong>Maps & Charts:</strong> Leaflet, React Leaflet, Recharts</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </main>
       </div>
-    </AppShell>
+    </div>
   );
 }

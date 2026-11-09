@@ -1,125 +1,135 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import { POLLUTANTS } from "@/lib/constants/aqi";
-import type { Measurement, PollutantKey } from "@/types";
-import { formatTimestamp } from "@/lib/utils";
-
-const POLLUTANT_COLORS: Record<PollutantKey, string> = {
-  pm25: "#f97316",
-  pm10: "#fb923c",
-  no2: "#a78bfa",
-  so2: "#facc15",
-  co: "#94a3b8",
-  o3: "#22d3ee",
-};
-
-const SAFE_LEVELS: Record<PollutantKey, number> = {
-  pm25: 15,
-  pm10: 50,
-  no2: 40,
-  so2: 20,
-  co: 4,
-  o3: 100,
-};
+import React, { useState } from 'react';
+import { PollutantMeasurement } from '@/types';
+import { getAQIColorHex } from '@/lib/aqi/calculator';
+import { Info, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PollutantCardProps {
-  pollutant: PollutantKey;
-  measurement?: Measurement;
+  pollutant: PollutantMeasurement;
 }
 
-export function PollutantCard({ pollutant, measurement }: PollutantCardProps) {
-  const info = POLLUTANTS[pollutant];
-  const color = POLLUTANT_COLORS[pollutant];
-  const safeLevel = SAFE_LEVELS[pollutant];
-  const hasData = measurement !== undefined;
-  const value = measurement?.value;
-  const pct = hasData && value !== undefined ? Math.min((value / (safeLevel * 4)) * 100, 100) : 0;
+export function PollutantCard({ pollutant }: PollutantCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const colorHex = getAQIColorHex(pollutant.category);
 
-  const severity =
-    !hasData || value === undefined
-      ? "no-data"
-      : value <= safeLevel
-      ? "good"
-      : value <= safeLevel * 2
-      ? "moderate"
-      : value <= safeLevel * 3
-      ? "high"
-      : "very-high";
+  // WHO threshold ratio
+  const ratioToWho = (pollutant.value / (pollutant.whoThreshold || 1)).toFixed(1);
+  const isOverWho = pollutant.value > pollutant.whoThreshold;
 
-  const severityLabel: Record<string, string> = {
-    "no-data": "No data",
-    good: "Good",
-    moderate: "Moderate",
-    high: "High",
-    "very-high": "Very High",
-  };
-
-  const severityColor: Record<string, string> = {
-    "no-data": "#64748b",
-    good: "#22c55e",
-    moderate: "#eab308",
-    high: "#f97316",
-    "very-high": "#ef4444",
-  };
+  // Percentage of EPA threshold standard capped at 100 for visual bar
+  const epaPercent = Math.min(100, Math.round((pollutant.value / (pollutant.epaThreshold || 1)) * 100));
 
   return (
-    <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 hover:border-slate-600 transition-colors">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <span
-            className="text-xs font-bold px-2 py-0.5 rounded-md"
-            style={{ backgroundColor: `${color}22`, color }}
-          >
-            {info.name}
-          </span>
-          <p className="text-xs text-slate-500 mt-1">{info.fullName}</p>
-        </div>
-        <span
-          className="text-xs font-medium px-2 py-0.5 rounded-full"
-          style={{
-            backgroundColor: `${severityColor[severity]}22`,
-            color: severityColor[severity],
-          }}
-        >
-          {severityLabel[severity]}
-        </span>
-      </div>
-
-      {/* Value */}
-      <div className="mb-3">
-        {hasData && value !== undefined ? (
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold text-slate-100">
-              {value < 10 ? value.toFixed(2) : value.toFixed(1)}
-            </span>
-            <span className="text-xs text-slate-500">{info.unit}</span>
+    <div className="rounded-2xl border border-slate-200 dark:border-navy-800 bg-white/80 dark:bg-navy-900/80 backdrop-blur-sm p-5 shadow-sm hover:shadow-lg dark:hover:shadow-black/20 hover:border-slate-300 dark:hover:border-navy-700 transition-all duration-300 flex flex-col justify-between group">
+      {/* Top Header */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm tracking-tight border transition-transform group-hover:scale-105"
+              style={{
+                backgroundColor: `${colorHex}15`,
+                borderColor: `${colorHex}40`,
+                color: colorHex,
+              }}
+            >
+              {pollutant.chemicalFormula}
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-slate-900 dark:text-white leading-tight">
+                {pollutant.name}
+              </h4>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                Ambient Air Measure
+              </span>
+            </div>
           </div>
-        ) : (
-          <span className="text-slate-500 text-sm">No data available</span>
-        )}
-      </div>
 
-      {/* Progress bar */}
-      <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden mb-3">
-        <div
-          className="h-full rounded-full transition-all duration-1000"
-          style={{ width: `${pct}%`, backgroundColor: color }}
-        />
-      </div>
+          {/* Sub-index AQI Pill */}
+          <div 
+            className="px-2.5 py-1 rounded-lg text-xs font-bold border"
+            style={{
+              backgroundColor: `${colorHex}15`,
+              borderColor: `${colorHex}30`,
+              color: colorHex,
+            }}
+          >
+            AQI {pollutant.aqiValue}
+          </div>
+        </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-500">
-          Safe: &lt;{safeLevel} {info.unit}
-        </span>
-        {measurement?.timestamp && (
-          <span className="text-xs text-slate-600">
-            {formatTimestamp(measurement.timestamp)}
+        {/* Big Concentration Value */}
+        <div className="flex items-baseline gap-2 my-2">
+          <span className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            {pollutant.value}
           </span>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {pollutant.unit}
+          </span>
+        </div>
+
+        {/* EPA Standard Comparison Bar */}
+        <div className="mt-3 space-y-1.5">
+          <div className="flex justify-between text-[11px]">
+            <span className="text-slate-500 dark:text-slate-400">EPA Standard Ratio</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              {epaPercent}% of Limit
+            </span>
+          </div>
+          <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-navy-800 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${epaPercent}%`,
+                backgroundColor: colorHex,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* WHO Guideline Chip */}
+        <div className="mt-3 flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-navy-850 border border-slate-200/60 dark:border-navy-800">
+          <span className="text-slate-500 dark:text-slate-400">WHO 24h Guideline:</span>
+          <span className={cn(
+            'font-semibold',
+            isOverWho ? 'text-amber-500 dark:text-amber-400' : 'text-emerald-500 dark:text-emerald-400'
+          )}>
+            {pollutant.whoThreshold} {pollutant.unit} ({ratioToWho}×)
+          </span>
+        </div>
+      </div>
+
+      {/* Expandable Explanation Button */}
+      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-navy-800">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full flex items-center justify-between text-xs text-slate-500 hover:text-emerald-500 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors"
+        >
+          <span className="font-medium flex items-center gap-1.5">
+            <Info className="w-3.5 h-3.5" />
+            {isExpanded ? 'Hide Health Details' : 'What is this pollutant?'}
+          </span>
+          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+
+        {isExpanded && (
+          <div className="mt-3 space-y-2 text-xs text-slate-600 dark:text-slate-300 animate-fadeIn">
+            <p className="leading-relaxed bg-slate-50 dark:bg-navy-850 p-2.5 rounded-xl border border-slate-200/80 dark:border-navy-800">
+              {pollutant.description}
+            </p>
+            <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 space-y-1">
+              <span className="font-semibold block flex items-center gap-1 text-[11px]">
+                <AlertCircle className="w-3 h-3" /> Health Impact:
+              </span>
+              <p className="text-[11px] leading-tight text-slate-700 dark:text-slate-300">
+                {pollutant.healthEffects}
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </div>
   );
 }
-

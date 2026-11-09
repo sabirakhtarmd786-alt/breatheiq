@@ -1,16 +1,13 @@
-import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { Toaster } from "react-hot-toast";
-
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
+import type { Metadata } from 'next';
+import './globals.css';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { LocationProvider } from '@/context/LocationContext';
 
 export const metadata: Metadata = {
-  title: "BreatheIQ — Understand Your Air. Protect Your Health.",
-  description:
-    "Real-time Air Quality Intelligence Platform. Monitor AQI, track pollutants, explore interactive maps, compare locations, and get health insights powered by authentic public APIs.",
-  keywords: ["air quality", "AQI", "pollution", "PM2.5", "environment", "health"],
+  title: 'BreatheIQ — Real-Time Air Quality Intelligence Platform',
+  description: 'Understand Your Air. Protect Your Health. Authentic real-time air quality monitoring, predictive analytics, interactive maps, and health advisories.',
+  keywords: ['AQI', 'Air Quality', 'PM2.5', 'PM10', 'BreatheIQ', 'Environmental Intelligence', 'Diwali Challenge 2026'],
+  authors: [{ name: 'Sabir - CSE (IoT)' }],
 };
 
 export default function RootLayout({
@@ -19,25 +16,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        {/* Leaflet CSS — loaded before map renders */}
         <link
           rel="stylesheet"
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossOrigin=""
         />
       </head>
-      <body className={`${geist.variable} antialiased`}>
+      <body className="font-sans">
         <ThemeProvider>
-          {children}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              className: "!bg-slate-800 !text-slate-100 !border !border-slate-700",
-              duration: 4000,
-            }}
-          />
+          <LocationProvider>
+            {children}
+          </LocationProvider>
         </ThemeProvider>
       </body>
     </html>

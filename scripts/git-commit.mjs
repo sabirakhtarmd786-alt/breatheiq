@@ -11,6 +11,7 @@ async function main() {
   // List of files to ignore or directories
   const ignoreList = [
     "node_modules",
+    ".node22",
     ".next",
     ".git",
     ".env.local",
@@ -61,3 +62,4 @@ main().catch(err => {
   console.error("Git operation failed:", err);
   process.exit(1);
 });
+

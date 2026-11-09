@@ -44,12 +44,21 @@ export default function CleanAirPage() {
     });
   };
 
+  const getPM25Val = (s: Station) => {
+    const m = (s.measurements || s.pollutants) as Record<string, any> | undefined;
+    if (!m) return undefined;
+    const p = m.pm25 || m.pm2_5;
+    if (typeof p === 'number') return p;
+    if (p && typeof p.value === 'number') return p.value;
+    return undefined;
+  };
+
   // Sort stations by PM2.5 (lowest first = cleanest)
   const ranked = [...stations]
-    .filter((s) => s.measurements.pm25 !== undefined)
-    .sort((a, b) => (a.measurements.pm25?.value ?? 999) - (b.measurements.pm25?.value ?? 999));
+    .filter((s) => getPM25Val(s) !== undefined)
+    .sort((a, b) => (getPM25Val(a) ?? 999) - (getPM25Val(b) ?? 999));
 
-  const noDataStations = stations.filter((s) => s.measurements.pm25 === undefined);
+  const noDataStations = stations.filter((s) => getPM25Val(s) === undefined);
 
   function getCleanBadge(pm25: number): { label: string; color: string } {
     if (pm25 < 15) return { label: "Good Air", color: "#22c55e" };
@@ -100,8 +109,10 @@ export default function CleanAirPage() {
                   {ranked.length} station(s) ranked by PM2.5
                 </h2>
                 {ranked.map((station, i) => {
-                  const pm25 = station.measurements.pm25!;
-                  const badge = getCleanBadge(pm25.value);
+                  const pm25Val = getPM25Val(station) ?? 0;
+                  const badge = getCleanBadge(pm25Val);
+                  const measurements = (station.measurements || station.pollutants || {}) as Record<string, any>;
+                  const pm25Item = measurements.pm25 || measurements.pm2_5;
                   return (
                     <Card key={station.id} className={`p-4 ${i === 0 ? "ring-1 ring-emerald-500/40" : ""}`}>
                       <div className="flex items-start gap-4">
@@ -124,16 +135,19 @@ export default function CleanAirPage() {
                             <div>
                               <p className="text-xs text-slate-500">PM2.5</p>
                               <p className="text-lg font-bold" style={{ color: badge.color }}>
-                                {pm25.value.toFixed(1)} <span className="text-xs font-normal text-slate-500">µg/m³</span>
+                                {pm25Val.toFixed(1)} <span className="text-xs font-normal text-slate-500">µg/m³</span>
                               </p>
                             </div>
-                            {Object.entries(station.measurements).filter(([k]) => k !== "pm25").map(([key, m]) => {
+                            {Object.entries(measurements).filter(([k]) => k !== "pm25" && k !== "pm2_5").map(([key, m]) => {
                               if (!m) return null;
-                              const info = POLLUTANTS[m.pollutant];
+                              const pKey = (m.pollutant || key) as keyof typeof POLLUTANTS;
+                              const info = POLLUTANTS[pKey] || { name: key.toUpperCase(), unit: "µg/m³" };
+                              const val = typeof m === 'number' ? m : m.value;
+                              if (val === undefined) return null;
                               return (
                                 <div key={key}>
                                   <p className="text-xs text-slate-500">{info.name}</p>
-                                  <p className="text-sm font-medium text-slate-300">{m.value.toFixed(1)} <span className="text-xs text-slate-500">{info.unit}</span></p>
+                                  <p className="text-sm font-medium text-slate-300">{Number(val).toFixed(1)} <span className="text-xs text-slate-500">{info.unit}</span></p>
                                 </div>
                               );
                             })}
@@ -141,9 +155,9 @@ export default function CleanAirPage() {
                           <div className="mt-2 flex items-center gap-3 text-xs text-slate-600">
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              {pm25.timestamp ? formatTimestamp(pm25.timestamp) : "Unknown time"}
+                              {pm25Item?.timestamp ? formatTimestamp(pm25Item.timestamp) : "Unknown time"}
                             </span>
-                            <span>Source: {pm25.source === "demo" ? "Demo Data" : "OpenAQ v3"}</span>
+                            <span>Source: {pm25Item?.source === "demo" ? "Demo Data" : "OpenAQ v3"}</span>
                             {i === 0 && <span className="text-emerald-400 font-medium">★ Cleanest in area</span>}
                           </div>
                         </div>

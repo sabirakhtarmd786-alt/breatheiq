@@ -10,8 +10,9 @@ const API_KEY = process.env.OPENAQ_API_KEY || "";
 
 // Map OpenAQ parameter names → our internal keys
 const PARAM_MAP: Record<string, PollutantKey> = {
-  pm25: "pm25",
-  "pm2.5": "pm25",
+  pm25: "pm2_5",
+  "pm2.5": "pm2_5",
+  pm2_5: "pm2_5",
   pm10: "pm10",
   no2: "no2",
   so2: "so2",

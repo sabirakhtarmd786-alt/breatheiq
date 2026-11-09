@@ -78,3 +78,4 @@ Use this script when recording your 2 to 3 minute demonstration screen recording
 4. Add the environment variable:
    - `OPENAQ_API_KEY`: *(Optional, your OpenAQ v3 key)*
 5. Click **Deploy**. Vercel will build and assign you a live production URL (e.g., `https://breatheiq.vercel.app`).
+

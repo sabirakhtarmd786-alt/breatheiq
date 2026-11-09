@@ -16,7 +16,7 @@ interface Message {
 function generateInsight(query: string, data: AirQualityData | null): string {
   const q = query.toLowerCase();
   const aqi = data?.aqi;
-  const measurements = data?.measurements;
+  const measurements: any = (data as any)?.measurements || (data as any)?.pollutants;
   const location = data?.location?.name || "the selected location";
 
   if (!data) {
@@ -25,7 +25,7 @@ function generateInsight(query: string, data: AirQualityData | null): string {
 
   // AQI questions
   if (q.includes("aqi") || q.includes("air quality index")) {
-    if (!aqi?.calculated) return `I couldn't calculate an AQI for ${location} because there isn't sufficient pollutant data available. This can happen in areas with limited monitoring coverage.`;
+    if (aqi?.calculated === false || !aqi?.value) return `I couldn't calculate an AQI for ${location} because there isn't sufficient pollutant data available. This can happen in areas with limited monitoring coverage.`;
     const cat = AQI_CATEGORIES.find((c) => aqi.value >= c.range[0] && aqi.value <= c.range[1]);
     return `The current AQI for ${location} is **${aqi.value}** (${aqi.category}), calculated using the US-EPA standard. ${cat?.advice || ""} The dominant pollutant is ${aqi.dominantPollutant ? POLLUTANTS[aqi.dominantPollutant as keyof typeof POLLUTANTS]?.fullName : "unknown"}.`;
   }
@@ -54,7 +54,7 @@ function generateInsight(query: string, data: AirQualityData | null): string {
 
   // Health questions
   if (q.includes("safe") || q.includes("health") || q.includes("exercise") || q.includes("outdoor")) {
-    if (!aqi?.calculated) return `Without a calculated AQI for ${location}, I can't give specific activity guidance. Generally, check local monitoring stations and reduce outdoor activity when pollution is high.`;
+    if (aqi?.calculated === false || !aqi?.value) return `Without a calculated AQI for ${location}, I can't give specific activity guidance. Generally, check local monitoring stations and reduce outdoor activity when pollution is high.`;
     if (aqi.value <= 50) return `With an AQI of ${aqi.value} at ${location}, outdoor conditions are generally safe for most people. Enjoy outdoor activities!`;
     if (aqi.value <= 100) return `With an AQI of ${aqi.value} at ${location}, conditions are moderate. Most people can go outside normally. Sensitive individuals (asthma, heart disease) should consider limiting prolonged vigorous exercise outdoors.`;
     if (aqi.value <= 150) return `With an AQI of ${aqi.value} at ${location}, the air is Unhealthy for Sensitive Groups. Children, elderly, and people with respiratory or cardiovascular conditions should limit prolonged outdoor exertion. The general public can still be active outdoors but should take breaks.`;
