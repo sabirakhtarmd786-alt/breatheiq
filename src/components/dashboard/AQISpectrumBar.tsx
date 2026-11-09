@@ -100,3 +100,4 @@ export function AQISpectrumBar({ aqi, categoryLabel, className }: AQISpectrumBar
     </div>
   );
 }
+

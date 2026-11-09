@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils';
 
 interface PollutantCardProps {
   pollutant: PollutantMeasurement;
+  onInspect?: () => void;
 }
 
-export function PollutantCard({ pollutant }: PollutantCardProps) {
+export function PollutantCard({ pollutant, onInspect }: PollutantCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const colorHex = getAQIColorHex(pollutant.category);
 
@@ -47,16 +48,32 @@ export function PollutantCard({ pollutant }: PollutantCardProps) {
             </div>
           </div>
 
-          {/* Sub-index AQI Pill */}
-          <div 
-            className="px-2.5 py-1 rounded-lg text-xs font-bold border"
-            style={{
-              backgroundColor: `${colorHex}15`,
-              borderColor: `${colorHex}30`,
-              color: colorHex,
-            }}
-          >
-            AQI {pollutant.aqiValue}
+          <div className="flex items-center gap-1.5">
+            {onInspect && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInspect();
+                }}
+                className="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-500 hover:text-emerald-500 dark:text-slate-400 dark:hover:text-emerald-400 bg-slate-100 hover:bg-slate-200 dark:bg-navy-800 dark:hover:bg-navy-700 transition-colors flex items-center gap-1"
+                title="Deep WHO/EPA standards & health analysis"
+              >
+                <span>Deep Dive</span>
+              </button>
+            )}
+
+            {/* Sub-index AQI Pill */}
+            <div 
+              className="px-2.5 py-1 rounded-lg text-xs font-bold border"
+              style={{
+                backgroundColor: `${colorHex}15`,
+                borderColor: `${colorHex}30`,
+                color: colorHex,
+              }}
+            >
+              AQI {pollutant.aqiValue}
+            </div>
           </div>
         </div>
 

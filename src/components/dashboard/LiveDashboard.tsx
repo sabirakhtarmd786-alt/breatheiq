@@ -27,9 +27,16 @@ import {
   Activity,
   HeartPulse,
   Fan,
-  ChevronRight
+  ChevronRight,
+  Globe,
+  Maximize2
 } from 'lucide-react';
 import { ShareCardModal } from '@/components/shared/ShareCardModal';
+import { IndiaCityBar } from '@/components/dashboard/IndiaCityBar';
+import { AQISpectrumBar } from '@/components/dashboard/AQISpectrumBar';
+import { PersonaActivityMatrix } from '@/components/dashboard/PersonaActivityMatrix';
+import { PollutantModal } from '@/components/dashboard/PollutantModal';
+import { MapWrapper } from '@/components/maps/MapWrapper';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -70,6 +77,18 @@ export function LiveDashboard({
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date>(new Date());
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [rankingsTab, setRankingsTab] = useState<'polluted' | 'cleanest'>('polluted');
+  const [inspectPollutant, setInspectPollutant] = useState<PollutantKey | null>(null);
+
+  const handleSelectCity = (city: { name: string; lat: number; lon: number; country?: string }) => {
+    setCurrentLocation({
+      id: `${city.lat}_${city.lon}`,
+      name: city.name,
+      country: city.country || 'India',
+      countryCode: city.country === 'India' || !city.country ? 'IN' : undefined,
+      latitude: city.lat,
+      longitude: city.lon,
+    });
+  };
 
   const fetchData = async (isManual = false) => {
     if (isManual) setIsRefreshing(true);
@@ -298,6 +317,14 @@ export function LiveDashboard({
 
   return (
     <div className="space-y-6 select-none">
+      {/* Global & India Quick-Jump City Switcher Strip */}
+      <div className="p-3.5 rounded-3xl bg-white/85 dark:bg-navy-900/85 border border-slate-200 dark:border-navy-800 shadow-sm backdrop-blur-md">
+        <IndiaCityBar
+          currentCityName={currentLocation.name}
+          onSelectCity={handleSelectCity}
+        />
+      </div>
+
       {/* Top Controls Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-3xl bg-white/80 dark:bg-navy-900/80 border border-slate-200 dark:border-navy-800 backdrop-blur-md shadow-sm">
         <div className="flex items-center gap-3">
@@ -459,8 +486,52 @@ export function LiveDashboard({
                 </div>
               </div>
             )}
+
+            {/* aqi.in / aqicn 0-500 Color Spectrum Needle Slider */}
+            <div className="pt-1">
+              <AQISpectrumBar
+                aqi={data.aqi.value}
+                categoryLabel={data.aqi.label}
+              />
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Interactive Global Air Quality Map (Mainly Focused on India) */}
+      <div className="rounded-3xl border border-slate-200 dark:border-navy-800 bg-white/90 dark:bg-navy-900/90 shadow-xl backdrop-blur-md p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <Globe className="w-5 h-5 text-emerald-400" />
+                Live Air Quality Map
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  Focused on India
+                </span>
+              </h3>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Live CPCB / CAAQMS ground telemetry across Indian states & cities. Zoom out to explore the whole world in real time, or click any location on earth to measure.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onNavigateToMap}
+              className="text-xs gap-1.5 rounded-2xl"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              Full Screen Map
+            </Button>
+          </div>
+        </div>
+
+        {/* Embedded Interactive Dynamic Map */}
+        <MapWrapper heightClassName="h-[460px] sm:h-[540px] lg:h-[600px]" />
       </div>
 
       {/* Row 2: 4 Actionable Health Icon Cards (aqi.in / aqicn signature) */}
@@ -492,6 +563,12 @@ export function LiveDashboard({
           );
         })}
       </div>
+
+      {/* Persona Activity Advisory Matrix */}
+      <PersonaActivityMatrix
+        aqiValue={data.aqi.value}
+        aqiCategory={data.aqi.category}
+      />
 
       {/* Row 3: 24-Hour Hour-by-Hour Timeline Forecast Strip (aqi.in benchmark) */}
       {hourlyStrip.length > 0 && (
@@ -571,7 +648,13 @@ export function LiveDashboard({
           {pollutantOrder.map((key) => {
             const pollutant = data.pollutants[key];
             if (!pollutant) return null;
-            return <PollutantCard key={key} pollutant={pollutant} />;
+            return (
+              <PollutantCard
+                key={key}
+                pollutant={pollutant}
+                onInspect={() => setInspectPollutant(key)}
+              />
+            );
           })}
         </div>
       </div>
@@ -771,6 +854,24 @@ export function LiveDashboard({
         pm25Value={data.pollutants.pm2_5?.value ?? 0}
         dominantPollutant={data.aqi.dominantPollutant.toUpperCase().replace('_', '.')}
       />
+
+      {/* Deep Dive Criteria Pollutant Modal */}
+      {inspectPollutant && (
+        <PollutantModal
+          pollutant={inspectPollutant}
+          measurement={
+            data.pollutants[inspectPollutant]
+              ? {
+                  value: data.pollutants[inspectPollutant].value,
+                  unit: data.pollutants[inspectPollutant].unit,
+                  aqi: data.pollutants[inspectPollutant].aqiValue,
+                  category: data.pollutants[inspectPollutant].category,
+                }
+              : undefined
+          }
+          onClose={() => setInspectPollutant(null)}
+        />
+      )}
     </div>
   );
 }

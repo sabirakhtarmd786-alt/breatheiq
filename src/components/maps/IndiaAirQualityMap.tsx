@@ -50,6 +50,7 @@ import {
 } from 'lucide-react';
 import { useLocation } from '@/context/LocationContext';
 import { useTheme } from '@/context/ThemeContext';
+import { cn } from '@/lib/utils';
 
 // Fix Leaflet default icon URLs for Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -143,12 +144,21 @@ function createTargetPinIcon() {
   });
 }
 
-export function IndiaAirQualityMap() {
+export interface IndiaAirQualityMapProps {
+  className?: string;
+  heightClassName?: string;
+}
+
+export function IndiaAirQualityMap({
+  className,
+  heightClassName = 'h-[520px] sm:h-[600px] lg:h-[660px]',
+}: IndiaAirQualityMapProps = {}) {
   const { setCurrentLocation } = useLocation();
   const { theme } = useTheme();
 
   const [currentZoom, setCurrentZoom] = useState(5);
   const [mapCenter, setMapCenter] = useState<[number, number]>([22.5937, 78.9629]); // Center of India
+  const [activeRegion, setActiveRegion] = useState<'india' | 'world' | 'asia' | 'europe' | 'americas'>('india');
   const [selectedState, setSelectedState] = useState<IndiaState | null>(null);
   const [selectedCity, setSelectedCity] = useState<IndiaCity | null>(null);
   const [selectedStation, setSelectedStation] = useState<IndiaStation | null>(null);
@@ -218,6 +228,7 @@ export function IndiaAirQualityMap() {
 
   // Region Fly-To presets
   const handleFlyToRegion = (region: 'india' | 'world' | 'asia' | 'europe' | 'americas') => {
+    setActiveRegion(region);
     setSelectedState(null);
     setSelectedCity(null);
     setSelectedStation(null);
@@ -510,7 +521,7 @@ export function IndiaAirQualityMap() {
         ))}
       </div>
 
-      <div className="relative w-full h-[680px] sm:h-[750px] rounded-3xl overflow-hidden border border-slate-200 dark:border-navy-800 shadow-2xl bg-slate-900 select-none flex flex-col">
+      <div className={cn("relative w-full rounded-3xl overflow-hidden border border-slate-200 dark:border-navy-800 shadow-2xl bg-slate-900 select-none flex flex-col", heightClassName, className)}>
       {/* Top Map Floating HUD: Navigation, Region Switchers & Controls */}
       <div className="absolute top-4 left-4 right-4 z-[500] flex flex-wrap items-center justify-between gap-3 pointer-events-none">
         {/* Left HUD: Breadcrumb Navigation & Region Pills */}
@@ -579,34 +590,59 @@ export function IndiaAirQualityMap() {
           </div>
 
           {/* Region Quick Selectors */}
-          <div className="hidden lg:flex items-center bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border border-slate-200 dark:border-navy-700 rounded-2xl p-1 shadow-xl text-xs font-semibold">
+          <div className="flex items-center bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border border-slate-200 dark:border-navy-700 rounded-2xl p-1 shadow-xl text-xs font-semibold overflow-x-auto">
             <button
               onClick={() => handleFlyToRegion('india')}
-              className="px-2.5 py-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-400 transition-colors"
+              className={cn(
+                "px-2.5 py-1 rounded-xl transition-all whitespace-nowrap",
+                activeRegion === 'india'
+                  ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/25"
+                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-400"
+              )}
             >
-              🇮🇳 India
+              🇮🇳 India (Focus)
             </button>
             <button
               onClick={() => handleFlyToRegion('world')}
-              className="px-2.5 py-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-400 transition-colors"
+              className={cn(
+                "px-2.5 py-1 rounded-xl transition-all whitespace-nowrap",
+                activeRegion === 'world'
+                  ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/25"
+                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-400"
+              )}
             >
-              🌍 World
+              🌍 Whole World
             </button>
             <button
               onClick={() => handleFlyToRegion('asia')}
-              className="px-2.5 py-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-400 transition-colors"
+              className={cn(
+                "hidden sm:inline-block px-2.5 py-1 rounded-xl transition-all whitespace-nowrap",
+                activeRegion === 'asia'
+                  ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/25"
+                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-400"
+              )}
             >
               🌏 Asia
             </button>
             <button
               onClick={() => handleFlyToRegion('europe')}
-              className="px-2.5 py-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-400 transition-colors"
+              className={cn(
+                "hidden md:inline-block px-2.5 py-1 rounded-xl transition-all whitespace-nowrap",
+                activeRegion === 'europe'
+                  ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/25"
+                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-400"
+              )}
             >
               🇪🇺 Europe
             </button>
             <button
               onClick={() => handleFlyToRegion('americas')}
-              className="px-2.5 py-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-400 transition-colors"
+              className={cn(
+                "hidden md:inline-block px-2.5 py-1 rounded-xl transition-all whitespace-nowrap",
+                activeRegion === 'americas'
+                  ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/25"
+                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-400"
+              )}
             >
               🇺🇸 Americas
             </button>
