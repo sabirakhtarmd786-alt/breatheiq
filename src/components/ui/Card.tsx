@@ -13,7 +13,6 @@ export function Card({ className, children, noPad, ...props }: CardProps) {
         'bg-white border-slate-200 shadow-sm text-slate-900',
         'dark:bg-navy-900/90 dark:border-navy-800/80 dark:shadow-md dark:shadow-black/20 dark:text-slate-100',
         'backdrop-blur-sm',
-        !noPad && '',
         className
       )}
       {...props}

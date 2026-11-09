@@ -51,10 +51,10 @@ export function QuickHealthPreview({ category, onExploreHealth }: QuickHealthPre
         };
       default:
         return {
-          exercise: { status: 'Moderate Exertion', text: 'Maintain reasonable physical precautions outdoors.' },
-          mask: { status: 'Recommended', text: 'Wear protective masks if pollution levels rise.' },
-          ventilation: { status: 'Monitor Air', text: 'Check local readings before opening home windows.' },
-          sensitive: { status: 'Observation', text: 'Keep medication handy for sensitive individuals.' },
+          exercise: { status: 'Moderate', text: 'Normal activities acceptable; sensitive people should monitor symptoms.' },
+          mask: { status: 'Optional', text: 'Use precautionary mask during peak traffic hours.' },
+          ventilation: { status: 'Normal', text: 'Moderate natural ventilation acceptable.' },
+          sensitive: { status: 'Caution', text: 'Sensitive individuals should limit prolonged outdoor exertion.' },
         };
     }
   };

@@ -5,75 +5,49 @@ import { AQIResult } from '@/types';
 import { ShieldCheck, Info, Sparkles, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export interface AQIGaugeProps {
-  aqi: AQIResult | any;
+interface AQIGaugeProps {
+  aqi: AQIResult;
   locationName?: string;
   source?: string;
   lastUpdated?: string;
-  size?: 'sm' | 'md' | 'lg' | string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-export function AQIGauge({
-  aqi,
-  locationName = 'Current Location',
-  source = 'Real-time Sensor',
-  lastUpdated = 'Just now',
-  size = 'md',
-}: AQIGaugeProps) {
-  // SVG gauge calculations (semi-circle 180 degrees)
-  const radius = 90;
-  const circumference = Math.PI * radius; // half circle circumference
-  const aqiVal = typeof aqi === 'number' ? aqi : (aqi?.value ?? 0);
-  const normalizedValue = Math.min(500, Math.max(0, aqiVal));
-  const progressPercent = normalizedValue / 500;
-  const strokeDashoffset = circumference - progressPercent * circumference;
-  const aqiColor = aqi?.color || (aqiVal <= 50 ? '#10B981' : aqiVal <= 100 ? '#F59E0B' : aqiVal <= 200 ? '#EF4444' : '#881337');
-  const aqiLabel = aqi?.label || (typeof aqi?.category === 'string' ? aqi.category : 'Current Air Quality');
-  const dominant = (aqi?.dominantPollutant || 'pm2_5').toUpperCase().replace('_', '.');
-
+export function AQIGauge({ aqi, locationName = 'Current Location', source = 'Open-Meteo', lastUpdated = 'Just now', size }: AQIGaugeProps) {
   if (size === 'sm') {
     return (
-      <div className="flex flex-col items-center justify-center p-2">
-        <div className="relative flex flex-col items-center justify-center">
-          <svg viewBox="0 0 220 130" className="w-32 max-w-full overflow-visible drop-shadow">
-            <path
-              d="M 20 110 A 90 90 0 0 1 200 110"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="16"
-              strokeLinecap="round"
-              className="text-slate-200 dark:text-navy-800"
-            />
-            <path
-              d="M 20 110 A 90 90 0 0 1 200 110"
-              fill="none"
-              stroke={aqiColor}
-              strokeWidth="16"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              className="transition-all duration-700 ease-out"
-            />
-          </svg>
-          <div className="absolute top-10 flex flex-col items-center">
-            <span className="text-2xl font-black tracking-tight" style={{ color: aqiColor }}>
-              {aqiVal}
-            </span>
-            <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest">
-              AQI
-            </span>
+      <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/80 dark:bg-navy-900/80 border border-slate-200 dark:border-navy-800">
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg text-white shadow-md shrink-0"
+          style={{ backgroundColor: aqi.color }}
+        >
+          {aqi.value}
+        </div>
+        <div className="min-w-0">
+          <div className="font-bold text-xs text-slate-900 dark:text-white truncate">
+            {aqi.label}
+          </div>
+          <div className="text-[10px] text-slate-400">
+            Dominant: {aqi.dominantPollutant?.toUpperCase().replace('_', '.') || 'PM2.5'}
           </div>
         </div>
       </div>
     );
   }
 
+  // SVG gauge calculations (semi-circle 180 degrees)
+  const radius = 90;
+  const circumference = Math.PI * radius; // half circle circumference
+  const normalizedValue = Math.min(500, Math.max(0, aqi.value));
+  const progressPercent = normalizedValue / 500;
+  const strokeDashoffset = circumference - progressPercent * circumference;
+
   return (
     <div className="relative overflow-hidden rounded-3xl border border-slate-200 dark:border-navy-800 bg-white/90 dark:bg-navy-900/90 shadow-xl dark:shadow-black/30 backdrop-blur-md p-6 sm:p-8 flex flex-col justify-between transition-all">
       {/* Ambient background glow matching AQI color */}
       <div 
         className="absolute top-0 right-1/2 translate-x-1/2 -mt-16 w-72 h-72 rounded-full blur-3xl opacity-20 pointer-events-none transition-colors duration-700"
-        style={{ backgroundColor: aqiColor }}
+        style={{ backgroundColor: aqi.color }}
       />
 
       {/* Top Header */}
@@ -83,11 +57,11 @@ export function AQIGauge({
             <span className="flex h-2.5 w-2.5 relative">
               <span 
                 className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                style={{ backgroundColor: aqiColor }}
+                style={{ backgroundColor: aqi.color }}
               />
               <span 
                 className="relative inline-flex rounded-full h-2.5 w-2.5"
-                style={{ backgroundColor: aqiColor }}
+                style={{ backgroundColor: aqi.color }}
               />
             </span>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -154,9 +128,9 @@ export function AQIGauge({
         <div className="absolute top-16 sm:top-18 flex flex-col items-center">
           <span 
             className="text-4xl sm:text-5xl font-extrabold tracking-tight transition-colors duration-500"
-            style={{ color: aqiColor }}
+            style={{ color: aqi.color }}
           >
-            {aqiVal}
+            {aqi.value}
           </span>
           <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
             US AQI
@@ -167,13 +141,13 @@ export function AQIGauge({
         <div 
           className="mt-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-md border flex items-center gap-2 transition-all"
           style={{ 
-            backgroundColor: `${aqiColor}20`,
-            borderColor: `${aqiColor}50`,
-            color: aqiColor
+            backgroundColor: `${aqi.color}20`,
+            borderColor: `${aqi.color}50`,
+            color: aqi.color
           }}
         >
           <Activity className="w-3.5 h-3.5" />
-          <span>{aqiLabel}</span>
+          <span>{aqi.label}</span>
         </div>
       </div>
 
@@ -186,7 +160,7 @@ export function AQIGauge({
           <span 
             className="px-2 py-0.5 rounded-md font-bold uppercase tracking-wider text-[11px] bg-slate-100 dark:bg-navy-800 text-emerald-400 border border-slate-200 dark:border-navy-700"
           >
-            {dominant}
+            {aqi.dominantPollutant.toUpperCase().replace('_', '.')}
           </span>
         </div>
 

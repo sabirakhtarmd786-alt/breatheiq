@@ -218,11 +218,31 @@ export function LiveDashboard({
           headline: `EMERGENCY ALERT: Air in ${currentLocation.name} is Hazardous!`,
           desc: 'Critical health emergency. Toxic particulate saturation. Stay strictly indoors, seal windows, and run HEPA air purifiers.',
         };
-      default:
+      default: {
+        const cat = String(category || '').toLowerCase();
+        if (cat.includes('good')) {
+          return {
+            headline: `Air quality in ${currentLocation.name} is Clean & Healthy`,
+            desc: 'Atmospheric conditions are pristine. Ideal for all outdoor sports, running, and natural ventilation.',
+          };
+        }
+        if (cat.includes('moderate')) {
+          return {
+            headline: `Air quality in ${currentLocation.name} is Acceptable`,
+            desc: 'Air quality is satisfactory for most people. Unusually sensitive individuals should monitor prolonged exertion.',
+          };
+        }
+        if (cat.includes('hazard')) {
+          return {
+            headline: `EMERGENCY ALERT: Air in ${currentLocation.name} is Hazardous!`,
+            desc: 'Critical health emergency. Toxic particulate saturation. Stay strictly indoors, seal windows, and run HEPA air purifiers.',
+          };
+        }
         return {
-          headline: `Air quality in ${currentLocation.name}`,
-          desc: 'Current sensor and dispersion model readings.',
+          headline: `Air quality in ${currentLocation.name} is ${data?.aqi.label || 'Monitored'}`,
+          desc: 'Monitor real-time exposure and follow appropriate precautionary measures.',
         };
+      }
     }
   };
 

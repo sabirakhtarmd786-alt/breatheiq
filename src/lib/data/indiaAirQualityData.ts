@@ -2170,3 +2170,274 @@ export function calculateCigaretteEquivalence(pm25: number): {
     };
   }
 }
+
+export interface WorldCity {
+  id: string;
+  name: string;
+  country: string;
+  countryCode: string;
+  region: 'Asia' | 'Europe' | 'Americas' | 'MiddleEast' | 'Africa' | 'Oceania';
+  lat: number;
+  lon: number;
+  aqi: number;
+  category: AQICategory;
+  dominantPollutant: PollutantKey;
+  pollutants: Record<PollutantKey, number>;
+}
+
+/**
+ * Top global megacities for the worldwide interactive map (aqicn.org global benchmark)
+ */
+export const WORLD_CITIES_DATA: WorldCity[] = [
+  {
+    id: 'tokyo',
+    name: 'Tokyo',
+    country: 'Japan',
+    countryCode: 'JP',
+    region: 'Asia',
+    lat: 35.6762,
+    lon: 139.6503,
+    aqi: 35,
+    category: 'good',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 8.5, pm10: 22.0, no2: 18.0, so2: 3.5, co: 420, o3: 45.0 },
+  },
+  {
+    id: 'beijing',
+    name: 'Beijing',
+    country: 'China',
+    countryCode: 'CN',
+    region: 'Asia',
+    lat: 39.9042,
+    lon: 116.4074,
+    aqi: 142,
+    category: 'sensitive',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 52.0, pm10: 110.0, no2: 42.0, so2: 12.0, co: 890, o3: 38.0 },
+  },
+  {
+    id: 'shanghai',
+    name: 'Shanghai',
+    country: 'China',
+    countryCode: 'CN',
+    region: 'Asia',
+    lat: 31.2304,
+    lon: 121.4737,
+    aqi: 122,
+    category: 'sensitive',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 44.0, pm10: 88.0, no2: 38.0, so2: 10.0, co: 780, o3: 42.0 },
+  },
+  {
+    id: 'seoul',
+    name: 'Seoul',
+    country: 'South Korea',
+    countryCode: 'KR',
+    region: 'Asia',
+    lat: 37.5665,
+    lon: 126.9780,
+    aqi: 85,
+    category: 'moderate',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 28.5, pm10: 55.0, no2: 32.0, so2: 6.0, co: 610, o3: 48.0 },
+  },
+  {
+    id: 'bangkok',
+    name: 'Bangkok',
+    country: 'Thailand',
+    countryCode: 'TH',
+    region: 'Asia',
+    lat: 13.7563,
+    lon: 100.5018,
+    aqi: 135,
+    category: 'sensitive',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 49.5, pm10: 95.0, no2: 35.0, so2: 9.0, co: 840, o3: 40.0 },
+  },
+  {
+    id: 'jakarta',
+    name: 'Jakarta',
+    country: 'Indonesia',
+    countryCode: 'ID',
+    region: 'Asia',
+    lat: -6.2088,
+    lon: 106.8456,
+    aqi: 156,
+    category: 'unhealthy',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 65.0, pm10: 125.0, no2: 44.0, so2: 14.0, co: 980, o3: 36.0 },
+  },
+  {
+    id: 'singapore',
+    name: 'Singapore',
+    country: 'Singapore',
+    countryCode: 'SG',
+    region: 'Asia',
+    lat: 1.3521,
+    lon: 103.8198,
+    aqi: 42,
+    category: 'good',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 10.0, pm10: 25.0, no2: 16.0, so2: 5.0, co: 480, o3: 38.0 },
+  },
+  {
+    id: 'dubai',
+    name: 'Dubai',
+    country: 'UAE',
+    countryCode: 'AE',
+    region: 'MiddleEast',
+    lat: 25.2048,
+    lon: 55.2708,
+    aqi: 118,
+    category: 'sensitive',
+    dominantPollutant: 'pm10',
+    pollutants: { pm2_5: 42.0, pm10: 165.0, no2: 34.0, so2: 12.0, co: 720, o3: 52.0 },
+  },
+  {
+    id: 'london',
+    name: 'London',
+    country: 'United Kingdom',
+    countryCode: 'GB',
+    region: 'Europe',
+    lat: 51.5074,
+    lon: -0.1278,
+    aqi: 44,
+    category: 'good',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 10.5, pm10: 22.0, no2: 26.0, so2: 4.0, co: 380, o3: 40.0 },
+  },
+  {
+    id: 'paris',
+    name: 'Paris',
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Europe',
+    lat: 48.8566,
+    lon: 2.3522,
+    aqi: 48,
+    category: 'good',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 11.5, pm10: 25.0, no2: 28.0, so2: 4.5, co: 410, o3: 42.0 },
+  },
+  {
+    id: 'berlin',
+    name: 'Berlin',
+    country: 'Germany',
+    countryCode: 'DE',
+    region: 'Europe',
+    lat: 52.5200,
+    lon: 13.4050,
+    aqi: 38,
+    category: 'good',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 9.0, pm10: 20.0, no2: 22.0, so2: 3.5, co: 360, o3: 44.0 },
+  },
+  {
+    id: 'new-york',
+    name: 'New York City',
+    country: 'United States',
+    countryCode: 'US',
+    region: 'Americas',
+    lat: 40.7128,
+    lon: -74.0060,
+    aqi: 45,
+    category: 'good',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 11.0, pm10: 24.0, no2: 25.0, so2: 4.0, co: 420, o3: 41.0 },
+  },
+  {
+    id: 'los-angeles',
+    name: 'Los Angeles',
+    country: 'United States',
+    countryCode: 'US',
+    region: 'Americas',
+    lat: 34.0522,
+    lon: -118.2437,
+    aqi: 78,
+    category: 'moderate',
+    dominantPollutant: 'o3',
+    pollutants: { pm2_5: 18.0, pm10: 42.0, no2: 30.0, so2: 3.0, co: 520, o3: 65.0 },
+  },
+  {
+    id: 'toronto',
+    name: 'Toronto',
+    country: 'Canada',
+    countryCode: 'CA',
+    region: 'Americas',
+    lat: 43.6532,
+    lon: -79.3832,
+    aqi: 34,
+    category: 'good',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 8.0, pm10: 18.0, no2: 18.0, so2: 2.5, co: 340, o3: 40.0 },
+  },
+  {
+    id: 'sao-paulo',
+    name: 'São Paulo',
+    country: 'Brazil',
+    countryCode: 'BR',
+    region: 'Americas',
+    lat: -23.5505,
+    lon: -46.6333,
+    aqi: 82,
+    category: 'moderate',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 27.0, pm10: 52.0, no2: 34.0, so2: 6.0, co: 640, o3: 38.0 },
+  },
+  {
+    id: 'cairo',
+    name: 'Cairo',
+    country: 'Egypt',
+    countryCode: 'EG',
+    region: 'Africa',
+    lat: 30.0444,
+    lon: 31.2357,
+    aqi: 172,
+    category: 'unhealthy',
+    dominantPollutant: 'pm10',
+    pollutants: { pm2_5: 78.0, pm10: 220.0, no2: 45.0, so2: 22.0, co: 1100, o3: 48.0 },
+  },
+  {
+    id: 'sydney',
+    name: 'Sydney',
+    country: 'Australia',
+    countryCode: 'AU',
+    region: 'Oceania',
+    lat: -33.8688,
+    lon: 151.2093,
+    aqi: 28,
+    category: 'good',
+    dominantPollutant: 'pm2_5',
+    pollutants: { pm2_5: 6.5, pm10: 16.0, no2: 12.0, so2: 2.0, co: 310, o3: 36.0 },
+  },
+];
+
+/**
+ * Validates environmental telemetry before updating the platform
+ */
+export function verifyAirQualityData(data: {
+  aqi?: number;
+  pollutants?: Record<string, number>;
+}): {
+  isValid: boolean;
+  notes: string[];
+} {
+  const notes: string[] = [];
+  let isValid = true;
+
+  if (typeof data.aqi !== 'number' || isNaN(data.aqi) || data.aqi < 0) {
+    isValid = false;
+    notes.push('Invalid AQI index score');
+  }
+
+  if (data.pollutants) {
+    Object.entries(data.pollutants).forEach(([key, val]) => {
+      if (typeof val !== 'number' || isNaN(val) || val < 0) {
+        isValid = false;
+        notes.push(`Invalid concentration for ${key}`);
+      }
+    });
+  }
+
+  return { isValid, notes };
+}

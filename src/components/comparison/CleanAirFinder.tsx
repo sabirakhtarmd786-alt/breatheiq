@@ -76,11 +76,9 @@ export function CleanAirFinder() {
 
     INDIA_STATES_DATA.forEach((s) => {
       s.cities.forEach((c) => {
-        const curLat = currentLocation.latitude ?? currentLocation.coordinates?.lat ?? 28.6139;
-        const curLon = currentLocation.longitude ?? currentLocation.coordinates?.lon ?? 77.209;
         const dist = calculateHaversineDistance(
-          curLat,
-          curLon,
+          currentLocation.latitude ?? 28.6139,
+          currentLocation.longitude ?? 77.2090,
           c.lat,
           c.lon
         );

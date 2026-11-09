@@ -19,14 +19,14 @@ import { useTheme } from '@/context/ThemeContext';
 import { LocationData } from '@/types';
 import { cn } from '@/lib/utils';
 
-export interface HeaderProps {
+interface HeaderProps {
   onToggleMobileMenu?: () => void;
   onOpenNotifications?: () => void;
   onLocationSelect?: (result: any) => void;
   currentLocation?: string;
 }
 
-export function Header({ onToggleMobileMenu, onOpenNotifications, onLocationSelect }: HeaderProps) {
+export function Header({ onToggleMobileMenu, onOpenNotifications }: HeaderProps) {
   const { currentLocation, setCurrentLocation, requestUserLocation, isLoadingLocation, locationError } = useLocation();
   const { theme, toggleTheme } = useTheme();
 
@@ -202,7 +202,7 @@ export function Header({ onToggleMobileMenu, onOpenNotifications, onLocationSele
                         <Check className="w-4 h-4 text-emerald-500" />
                       ) : (
                         <span className="text-[11px] text-slate-400">
-                          {(loc.latitude ?? loc.coordinates?.lat ?? 0).toFixed(2)}°, {(loc.longitude ?? loc.coordinates?.lon ?? 0).toFixed(2)}°
+                          {loc.latitude !== undefined && loc.longitude !== undefined ? `${loc.latitude.toFixed(2)}°, ${loc.longitude.toFixed(2)}°` : ''}
                         </span>
                       )}
                     </button>
@@ -261,18 +261,11 @@ export function Header({ onToggleMobileMenu, onOpenNotifications, onLocationSele
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
         </button>
 
-        {/* User Profile Avatar */}
+        {/* Open Public Access Status */}
         <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-navy-800">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-navy-950 font-bold text-sm shadow-md shadow-emerald-500/20">
-            S
-          </div>
-          <div className="hidden lg:flex flex-col text-left">
-            <span className="text-xs font-semibold text-slate-900 dark:text-white leading-tight">
-              Sabir
-            </span>
-            <span className="text-[10px] text-emerald-500 font-medium">
-              CSE (IoT) Engineer
-            </span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs font-semibold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Public Access • No Sign-In</span>
           </div>
         </div>
       </div>

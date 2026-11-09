@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import React, { useState, useMemo } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
   MapPin, 
@@ -45,28 +45,30 @@ const NAV_ITEMS: { id: NavigationTab; label: string; icon: React.ElementType; ba
 ];
 
 export function Sidebar({
-  activeTab,
+  activeTab: propActiveTab,
   setActiveTab,
   isCollapsed: propIsCollapsed,
   setIsCollapsed: propSetIsCollapsed,
   isMobileOpen: propIsMobileOpen,
   setIsMobileOpen: propSetIsMobileOpen,
-}: SidebarProps) {
-  const router = useRouter();
+}: SidebarProps = {}) {
   const pathname = usePathname();
-  const [internalCollapsed, setInternalCollapsed] = useState(false);
-  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  const router = useRouter();
 
-  const isCollapsed = propIsCollapsed ?? internalCollapsed;
-  const setIsCollapsed = propSetIsCollapsed ?? setInternalCollapsed;
-  const isMobileOpen = propIsMobileOpen ?? internalMobileOpen;
-  const setIsMobileOpen = propSetIsMobileOpen ?? setInternalMobileOpen;
+  const [localCollapsed, setLocalCollapsed] = useState(false);
+  const [localMobileOpen, setLocalMobileOpen] = useState(false);
 
-  const currentTab: NavigationTab = activeTab || (() => {
+  const isCollapsed = propIsCollapsed ?? localCollapsed;
+  const setIsCollapsed = propSetIsCollapsed ?? setLocalCollapsed;
+  const isMobileOpen = propIsMobileOpen ?? localMobileOpen;
+  const setIsMobileOpen = propSetIsMobileOpen ?? setLocalMobileOpen;
+
+  const activeTab = useMemo<NavigationTab>(() => {
+    if (propActiveTab) return propActiveTab;
     if (!pathname || pathname === '/') return 'overview';
-    const segment = pathname.replace(/^\//, '');
-    return (segment as NavigationTab) || 'overview';
-  })();
+    const segment = pathname.replace(/^\//, '').split('/')[0] as NavigationTab;
+    return segment || 'overview';
+  }, [propActiveTab, pathname]);
 
   const handleNavClick = (tab: NavigationTab) => {
     if (setActiveTab) {
@@ -120,7 +122,7 @@ export function Sidebar({
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5 scrollbar-thin">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = currentTab === item.id;
+          const isActive = activeTab === item.id;
 
           return (
             <button

@@ -232,10 +232,10 @@ export default function HomePage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-100 dark:bg-navy-850 border border-slate-200 dark:border-navy-800">
                     <div><strong>Project Name:</strong> BreatheIQ</div>
                     <div><strong>Theme:</strong> Technology for Cleaner Air</div>
-                    <div><strong>Development Type:</strong> Individual Project</div>
-                    <div><strong>Developer:</strong> 2nd-Year CSE (IoT) Student</div>
+                    <div><strong>Platform Type:</strong> Open-Access Environmental Intelligence</div>
+                    <div><strong>License:</strong> Open Public Access • No Login Required</div>
                     <div><strong>Frontend:</strong> Next.js 14, React 18, TypeScript, Tailwind CSS</div>
-                    <div><strong>Maps & Charts:</strong> Leaflet, React Leaflet, Recharts</div>
+                    <div><strong>Maps & Models:</strong> Leaflet, Open-Meteo European CAMS, Recharts</div>
                   </div>
                 </CardContent>
               </Card>

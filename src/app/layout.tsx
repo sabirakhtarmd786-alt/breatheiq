@@ -6,8 +6,7 @@ import { LocationProvider } from '@/context/LocationContext';
 export const metadata: Metadata = {
   title: 'BreatheIQ — Real-Time Air Quality Intelligence Platform',
   description: 'Understand Your Air. Protect Your Health. Authentic real-time air quality monitoring, predictive analytics, interactive maps, and health advisories.',
-  keywords: ['AQI', 'Air Quality', 'PM2.5', 'PM10', 'BreatheIQ', 'Environmental Intelligence', 'Diwali Challenge 2026'],
-  authors: [{ name: 'Sabir - CSE (IoT)' }],
+  authors: [{ name: 'BreatheIQ Open Platform' }],
 };
 
 export default function RootLayout({
