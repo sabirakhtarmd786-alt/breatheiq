@@ -1,0 +1,195 @@
+// ============================================================
+// BreatheIQ — Demo Data (shown when real API is unavailable)
+// Clearly labeled as DEMO DATA
+// ============================================================
+
+import type { AirQualityData, Station } from "@/types";
+
+export const DEMO_LOCATION = {
+  name: "New Delhi, India",
+  city: "New Delhi",
+  country: "India",
+  coordinates: { lat: 28.6139, lon: 77.209 },
+};
+
+export const DEMO_STATIONS: Station[] = [
+  {
+    id: "demo-1",
+    name: "India Gate Monitoring Station",
+    coordinates: { lat: 28.6129, lon: 77.2295 },
+    city: "New Delhi",
+    country: "India",
+    source: "demo",
+    lastUpdated: new Date().toISOString(),
+    measurements: {
+      pm25: {
+        pollutant: "pm25",
+        value: 85.4,
+        unit: "µg/m³",
+        timestamp: new Date().toISOString(),
+        source: "demo",
+        stationName: "India Gate Monitoring Station",
+        measurementType: "measured",
+      },
+      pm10: {
+        pollutant: "pm10",
+        value: 142.0,
+        unit: "µg/m³",
+        timestamp: new Date().toISOString(),
+        source: "demo",
+        stationName: "India Gate Monitoring Station",
+        measurementType: "measured",
+      },
+      no2: {
+        pollutant: "no2",
+        value: 68.2,
+        unit: "µg/m³",
+        timestamp: new Date().toISOString(),
+        source: "demo",
+        stationName: "India Gate Monitoring Station",
+        measurementType: "measured",
+      },
+    },
+  },
+  {
+    id: "demo-2",
+    name: "Connaught Place Air Quality Station",
+    coordinates: { lat: 28.6315, lon: 77.2167 },
+    city: "New Delhi",
+    country: "India",
+    source: "demo",
+    lastUpdated: new Date().toISOString(),
+    measurements: {
+      pm25: {
+        pollutant: "pm25",
+        value: 112.0,
+        unit: "µg/m³",
+        timestamp: new Date().toISOString(),
+        source: "demo",
+        stationName: "Connaught Place Air Quality Station",
+        measurementType: "measured",
+      },
+      o3: {
+        pollutant: "o3",
+        value: 95.5,
+        unit: "µg/m³",
+        timestamp: new Date().toISOString(),
+        source: "demo",
+        stationName: "Connaught Place Air Quality Station",
+        measurementType: "measured",
+      },
+    },
+  },
+  {
+    id: "demo-3",
+    name: "Lodhi Road Monitoring Station",
+    coordinates: { lat: 28.591, lon: 77.2219 },
+    city: "New Delhi",
+    country: "India",
+    source: "demo",
+    lastUpdated: new Date().toISOString(),
+    measurements: {
+      pm25: {
+        pollutant: "pm25",
+        value: 55.1,
+        unit: "µg/m³",
+        timestamp: new Date().toISOString(),
+        source: "demo",
+        stationName: "Lodhi Road Monitoring Station",
+        measurementType: "measured",
+      },
+      so2: {
+        pollutant: "so2",
+        value: 22.3,
+        unit: "µg/m³",
+        timestamp: new Date().toISOString(),
+        source: "demo",
+        stationName: "Lodhi Road Monitoring Station",
+        measurementType: "measured",
+      },
+      co: {
+        pollutant: "co",
+        value: 1.2,
+        unit: "mg/m³",
+        timestamp: new Date().toISOString(),
+        source: "demo",
+        stationName: "Lodhi Road Monitoring Station",
+        measurementType: "measured",
+      },
+    },
+  },
+];
+
+export const DEMO_AIR_QUALITY: AirQualityData = {
+  location: DEMO_LOCATION,
+  measurements: {
+    pm25: {
+      pollutant: "pm25",
+      value: 85.4,
+      unit: "µg/m³",
+      timestamp: new Date().toISOString(),
+      source: "demo",
+      stationName: "India Gate Monitoring Station",
+      measurementType: "measured",
+    },
+    pm10: {
+      pollutant: "pm10",
+      value: 142.0,
+      unit: "µg/m³",
+      timestamp: new Date().toISOString(),
+      source: "demo",
+      stationName: "India Gate Monitoring Station",
+      measurementType: "measured",
+    },
+    no2: {
+      pollutant: "no2",
+      value: 68.2,
+      unit: "µg/m³",
+      timestamp: new Date().toISOString(),
+      source: "demo",
+      stationName: "India Gate Monitoring Station",
+      measurementType: "measured",
+    },
+    so2: {
+      pollutant: "so2",
+      value: 22.3,
+      unit: "µg/m³",
+      timestamp: new Date().toISOString(),
+      source: "demo",
+      stationName: "Lodhi Road Monitoring Station",
+      measurementType: "measured",
+    },
+    co: {
+      pollutant: "co",
+      value: 1.2,
+      unit: "mg/m³",
+      timestamp: new Date().toISOString(),
+      source: "demo",
+      stationName: "Lodhi Road Monitoring Station",
+      measurementType: "measured",
+    },
+    o3: {
+      pollutant: "o3",
+      value: 95.5,
+      unit: "µg/m³",
+      timestamp: new Date().toISOString(),
+      source: "demo",
+      stationName: "Connaught Place Air Quality Station",
+      measurementType: "measured",
+    },
+  },
+  aqi: {
+    value: 162,
+    category: "Unhealthy",
+    color: "#ff0000",
+    textColor: "text-red-400",
+    dominantPollutant: "pm25",
+    standard: "US-EPA",
+    calculated: true,
+  },
+  stations: DEMO_STATIONS,
+  dataSource: "⚠️ DEMO DATA — Connect API keys for live data",
+  fetchedAt: new Date().toISOString(),
+  isDemo: true,
+};
+
