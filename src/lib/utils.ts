@@ -13,49 +13,6 @@ export function formatNumber(value: number | undefined | null, decimals = 1): st
   });
 }
 
-export function formatDate(dateStr?: string | Date): string {
-  if (!dateStr) return '';
-  try {
-    const d = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  } catch {
-    return String(dateStr);
-  }
-}
-
-export function formatDateShort(dateStr: string): string {
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  } catch {
-    return dateStr;
-  }
-}
-
-export function formatHour(timeStr: string): string {
-  try {
-    const d = new Date(timeStr);
-    return d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
-  } catch {
-    return timeStr;
-  }
-}
-
-export function formatTimestamp(timestampStr?: string | Date): string {
-  if (!timestampStr) return 'Recently';
-  try {
-    const d = typeof timestampStr === 'string' ? new Date(timestampStr) : timestampStr;
-    return d.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return String(timestampStr);
-  }
-}
-
 export function formatTimeAgo(timestampStr: string): string {
   try {
     const date = new Date(timestampStr);
@@ -72,26 +29,6 @@ export function formatTimeAgo(timestampStr: string): string {
   } catch {
     return 'Recently';
   }
-}
-
-export function getAQICategory(aqi: number): string {
-  if (aqi <= 50) return 'Good';
-  if (aqi <= 100) return 'Moderate';
-  if (aqi <= 150) return 'Unhealthy for Sensitive Groups';
-  if (aqi <= 200) return 'Unhealthy';
-  if (aqi <= 300) return 'Very Unhealthy';
-  return 'Hazardous';
-}
-
-export function getAQICategoryColor(category: string): string {
-  const cat = (category || '').toLowerCase();
-  if (cat.includes('good')) return '#10B981';
-  if (cat.includes('moderate')) return '#F59E0B';
-  if (cat.includes('sensitive')) return '#F97316';
-  if (cat.includes('very')) return '#A855F7';
-  if (cat.includes('unhealthy')) return '#EF4444';
-  if (cat.includes('hazard')) return '#881337';
-  return '#94A3B8';
 }
 
 export function getAQISeverityDetails(aqi: number) {

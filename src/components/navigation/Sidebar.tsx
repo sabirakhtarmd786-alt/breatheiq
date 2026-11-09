@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import React from 'react';
 import { 
   LayoutDashboard, 
   MapPin, 
@@ -22,13 +21,13 @@ import {
 import { NavigationTab } from '@/types';
 import { cn } from '@/lib/utils';
 
-export interface SidebarProps {
-  activeTab?: NavigationTab;
-  setActiveTab?: (tab: NavigationTab) => void;
-  isCollapsed?: boolean;
-  setIsCollapsed?: (collapsed: boolean) => void;
-  isMobileOpen?: boolean;
-  setIsMobileOpen?: (open: boolean) => void;
+interface SidebarProps {
+  activeTab: NavigationTab;
+  setActiveTab: (tab: NavigationTab) => void;
+  isCollapsed: boolean;
+  setIsCollapsed: (collapsed: boolean) => void;
+  isMobileOpen: boolean;
+  setIsMobileOpen: (open: boolean) => void;
 }
 
 const NAV_ITEMS: { id: NavigationTab; label: string; icon: React.ElementType; badge?: string }[] = [
@@ -45,37 +44,15 @@ const NAV_ITEMS: { id: NavigationTab; label: string; icon: React.ElementType; ba
 ];
 
 export function Sidebar({
-  activeTab: propActiveTab,
+  activeTab,
   setActiveTab,
-  isCollapsed: propIsCollapsed,
-  setIsCollapsed: propSetIsCollapsed,
-  isMobileOpen: propIsMobileOpen,
-  setIsMobileOpen: propSetIsMobileOpen,
-}: SidebarProps = {}) {
-  const pathname = usePathname();
-  const router = useRouter();
-
-  const [localCollapsed, setLocalCollapsed] = useState(false);
-  const [localMobileOpen, setLocalMobileOpen] = useState(false);
-
-  const isCollapsed = propIsCollapsed ?? localCollapsed;
-  const setIsCollapsed = propSetIsCollapsed ?? setLocalCollapsed;
-  const isMobileOpen = propIsMobileOpen ?? localMobileOpen;
-  const setIsMobileOpen = propSetIsMobileOpen ?? setLocalMobileOpen;
-
-  const activeTab = useMemo<NavigationTab>(() => {
-    if (propActiveTab) return propActiveTab;
-    if (!pathname || pathname === '/') return 'overview';
-    const segment = pathname.replace(/^\//, '').split('/')[0] as NavigationTab;
-    return segment || 'overview';
-  }, [propActiveTab, pathname]);
-
+  isCollapsed,
+  setIsCollapsed,
+  isMobileOpen,
+  setIsMobileOpen,
+}: SidebarProps) {
   const handleNavClick = (tab: NavigationTab) => {
-    if (setActiveTab) {
-      setActiveTab(tab);
-    } else {
-      router.push(tab === 'overview' ? '/' : `/${tab}`);
-    }
+    setActiveTab(tab);
     setIsMobileOpen(false);
   };
 

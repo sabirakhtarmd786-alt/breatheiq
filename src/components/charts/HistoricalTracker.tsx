@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from '@/context/LocationContext';
 import { 
   AreaChart, 
@@ -109,6 +109,29 @@ export function HistoricalTracker() {
   ];
 
   const currentOption = METRIC_OPTIONS.find((m) => m.id === activeMetric) || METRIC_OPTIONS[0];
+
+  // Anomaly Detection: Statistical Z-Score Outlier Analysis (Z >= 2.0)
+  const anomalies = useMemo(() => {
+    if (!data?.hourly || data.hourly.length === 0) return [];
+    const values = data.hourly.map((h: any) => h.aqi);
+    const mean = values.reduce((a: number, b: number) => a + b, 0) / values.length;
+    const variance = values.reduce((a: number, b: number) => a + Math.pow(b - mean, 2), 0) / values.length;
+    const stdDev = Math.sqrt(variance);
+    const threshold = mean + 2.0 * stdDev;
+
+    return data.hourly
+      .filter((h: any) => h.aqi >= threshold && h.aqi > 100)
+      .map((h: any) => ({
+        time: h.time,
+        aqi: h.aqi,
+        pm2_5: h.pm2_5,
+        zScore: ((h.aqi - mean) / (stdDev || 1)).toFixed(1),
+        probableCause:
+          h.aqi > 300
+            ? 'Severe Combustion Episode / Thermal Inversion Lid'
+            : 'Rush-Hour Vehicular Concentration / Episodic Biomass Smoke',
+      }));
+  }, [data]);
 
   return (
     <div className="space-y-6 select-none">
@@ -259,6 +282,52 @@ export function HistoricalTracker() {
             </p>
           </Card>
         </div>
+      )}
+
+      {/* Statistical Anomaly Detection Alert Card */}
+      {anomalies.length > 0 && (
+        <Card className="p-5 border-amber-500/30 bg-amber-500/5 dark:bg-amber-950/20 backdrop-blur-md">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+              <div>
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Statistical Anomaly Detection Engine</span>
+                  <Badge variant="warning" size="sm">
+                    {anomalies.length} Episodes Detected (Z ≥ 2.0σ)
+                  </Badge>
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Identified statistically significant episodic pollution spikes deviating by more than 2 standard deviations from the {days}-day mean.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mt-2">
+            {anomalies.slice(0, 3).map((anom: any, idx: number) => (
+              <div
+                key={idx}
+                className="p-3 rounded-2xl bg-white/80 dark:bg-navy-900/80 border border-amber-500/20 text-xs space-y-1 shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {new Date(anom.time).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit' })}
+                  </span>
+                  <span className="font-extrabold text-rose-500">
+                    AQI {anom.aqi} (Z: +{anom.zScore}σ)
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                  PM2.5: {anom.pm2_5} µg/m³
+                </div>
+                <div className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold truncate">
+                  ⚡ {anom.probableCause}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
 
       {/* Pollutant Metric Selector Tabs */}

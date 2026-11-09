@@ -20,10 +20,8 @@ import { LocationData } from '@/types';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
-  onToggleMobileMenu?: () => void;
+  onToggleMobileMenu: () => void;
   onOpenNotifications?: () => void;
-  onLocationSelect?: (result: any) => void;
-  currentLocation?: string;
 }
 
 export function Header({ onToggleMobileMenu, onOpenNotifications }: HeaderProps) {
@@ -202,7 +200,7 @@ export function Header({ onToggleMobileMenu, onOpenNotifications }: HeaderProps)
                         <Check className="w-4 h-4 text-emerald-500" />
                       ) : (
                         <span className="text-[11px] text-slate-400">
-                          {loc.latitude !== undefined && loc.longitude !== undefined ? `${loc.latitude.toFixed(2)}°, ${loc.longitude.toFixed(2)}°` : ''}
+                          {loc.latitude.toFixed(2)}°, {loc.longitude.toFixed(2)}°
                         </span>
                       )}
                     </button>

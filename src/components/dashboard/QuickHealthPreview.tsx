@@ -49,13 +49,6 @@ export function QuickHealthPreview({ category, onExploreHealth }: QuickHealthPre
           ventilation: { status: 'Purifier Active', text: 'Seal indoor spaces. Run indoor air purifiers at maximum mode.' },
           sensitive: { status: 'Emergency', text: 'Consult physician immediately if experiencing chest pain or wheezing.' },
         };
-      default:
-        return {
-          exercise: { status: 'Moderate', text: 'Normal activities acceptable; sensitive people should monitor symptoms.' },
-          mask: { status: 'Optional', text: 'Use precautionary mask during peak traffic hours.' },
-          ventilation: { status: 'Normal', text: 'Moderate natural ventilation acceptable.' },
-          sensitive: { status: 'Caution', text: 'Sensitive individuals should limit prolonged outdoor exertion.' },
-        };
     }
   };
 

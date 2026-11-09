@@ -13,6 +13,7 @@ import {
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import indiaStatesGeoData from '@/lib/data/india_states_geo.json';
+import worldCountriesGeoData from '@/lib/data/world_countries_geo.json';
 import { 
   INDIA_STATES_DATA, 
   IndiaState, 
@@ -24,8 +25,7 @@ import {
   getMostPollutedCities,
   getCleanestCities,
   calculateCigaretteEquivalence,
-  verifyAirQualityData,
-  getAllCitiesFlat
+  verifyAirQualityData
 } from '@/lib/data/indiaAirQualityData';
 import { getAQIColorHex } from '@/lib/aqi/calculator';
 import { 
@@ -50,7 +50,6 @@ import {
 } from 'lucide-react';
 import { useLocation } from '@/context/LocationContext';
 import { useTheme } from '@/context/ThemeContext';
-import { cn } from '@/lib/utils';
 
 // Fix Leaflet default icon URLs for Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -126,13 +125,61 @@ function createPinIcon(
   });
 }
 
+// Custom District Pin Icon with explicit District label
+function createDistrictPinIcon(
+  value: number,
+  districtName: string,
+  color: string,
+  isHazardous: boolean,
+  unit: string = ''
+) {
+  const html = `
+    <div class="aqi-map-pin flex flex-col items-center" style="--pin-color: ${color}">
+      ${isHazardous ? '<div class="aqi-pin-pulse"></div>' : ''}
+      <div class="aqi-pin-pill px-2.5 py-0.5 text-[11px]" style="background-color: ${color}">
+        <span>${value}${unit}</span>
+      </div>
+      <div class="aqi-pin-pointer"></div>
+      <div class="mt-0.5 px-2 py-0.5 rounded-full bg-slate-900/90 dark:bg-navy-950/95 text-[9px] font-extrabold text-white border border-slate-700/80 shadow-md backdrop-blur-sm whitespace-nowrap">
+        ${districtName}
+      </div>
+    </div>
+  `;
+
+  return L.divIcon({
+    className: '',
+    html,
+    iconSize: [80, 52],
+    iconAnchor: [40, 26],
+  });
+}
+
+// Permanent State Name Badge displayed right on the map
+function createStateNameBadge(name: string, aqi: number, color: string) {
+  const html = `
+    <div class="pointer-events-none flex flex-col items-center">
+      <div class="px-2.5 py-1 rounded-xl bg-white/95 dark:bg-navy-950/95 border border-slate-300 dark:border-navy-700 shadow-xl backdrop-blur-md flex items-center gap-1.5 transition-transform hover:scale-105">
+        <span class="w-2 h-2 rounded-full shadow-sm" style="background-color: ${color}"></span>
+        <span class="text-[11px] font-black tracking-wide text-slate-900 dark:text-white whitespace-nowrap">${name}</span>
+        <span class="text-[10px] font-extrabold text-white px-1.5 py-0.2 rounded-md shadow-sm" style="background-color: ${color}">${aqi}</span>
+      </div>
+    </div>
+  `;
+  return L.divIcon({
+    className: '',
+    html,
+    iconSize: [140, 28],
+    iconAnchor: [70, 14],
+  });
+}
+
 // Custom Target Click Pin Icon
 function createTargetPinIcon() {
   const html = `
     <div class="relative flex items-center justify-center">
       <span class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-emerald-400 opacity-75"></span>
       <div class="w-7 h-7 rounded-full bg-emerald-500 border-2 border-white shadow-xl flex items-center justify-center text-white">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
       </div>
     </div>
   `;
@@ -144,21 +191,12 @@ function createTargetPinIcon() {
   });
 }
 
-export interface IndiaAirQualityMapProps {
-  className?: string;
-  heightClassName?: string;
-}
-
-export function IndiaAirQualityMap({
-  className,
-  heightClassName = 'h-[520px] sm:h-[600px] lg:h-[660px]',
-}: IndiaAirQualityMapProps = {}) {
+export function IndiaAirQualityMap() {
   const { setCurrentLocation } = useLocation();
   const { theme } = useTheme();
 
   const [currentZoom, setCurrentZoom] = useState(5);
   const [mapCenter, setMapCenter] = useState<[number, number]>([22.5937, 78.9629]); // Center of India
-  const [activeRegion, setActiveRegion] = useState<'india' | 'world' | 'asia' | 'europe' | 'americas'>('india');
   const [selectedState, setSelectedState] = useState<IndiaState | null>(null);
   const [selectedCity, setSelectedCity] = useState<IndiaCity | null>(null);
   const [selectedStation, setSelectedStation] = useState<IndiaStation | null>(null);
@@ -228,7 +266,6 @@ export function IndiaAirQualityMap({
 
   // Region Fly-To presets
   const handleFlyToRegion = (region: 'india' | 'world' | 'asia' | 'europe' | 'americas') => {
-    setActiveRegion(region);
     setSelectedState(null);
     setSelectedCity(null);
     setSelectedStation(null);
@@ -263,39 +300,11 @@ export function IndiaAirQualityMap({
 
   // Handle clicking a City
   const handleSelectCity = useCallback((city: IndiaCity) => {
-    const parentState = INDIA_STATES_DATA.find((s) => s.id === city.stateId) || null;
-    if (parentState) setSelectedState(parentState);
     setSelectedCity(city);
     setSelectedStation(null);
     setCustomPoint(null);
     setMapCenter([city.lat, city.lon]);
     setCurrentZoom(11);
-  }, []);
-
-  // 12 Key Indian Metros for Quick-Jump Strip (aqi.in / aqicn signature)
-  const metroCities = useMemo(() => {
-    const all = getAllCitiesFlat();
-    const METRO_KEYS = [
-      'delhi',
-      'mumbai',
-      'bengaluru',
-      'kolkata',
-      'chennai',
-      'hyderabad',
-      'ahmedabad',
-      'pune',
-      'lucknow',
-      'jaipur',
-      'patna',
-      'chandigarh',
-    ];
-    return METRO_KEYS.map((key) => {
-      return all.find(
-        (c) =>
-          c.id.toLowerCase().includes(key) ||
-          c.name.toLowerCase().includes(key)
-      );
-    }).filter(Boolean) as IndiaCity[];
   }, []);
 
   // Handle clicking a Station
@@ -493,35 +502,7 @@ export function IndiaAirQualityMap({
   const activeInspectorItem = customPoint || selectedStation || selectedCity || selectedState;
 
   return (
-    <div className="space-y-3">
-      {/* Metro Quick-Jump Hubs (aqi.in / aqicn signature) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0 px-1 flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-          Metro Quick Jump:
-        </span>
-        {metroCities.map((m) => (
-          <button
-            key={m.id}
-            onClick={() => handleSelectCity(m)}
-            className={`shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-2xl text-xs font-semibold border transition-all backdrop-blur-md shadow-sm ${
-              selectedCity?.id === m.id
-                ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400 shadow-md ring-1 ring-emerald-500/30'
-                : 'bg-white/85 dark:bg-navy-900/85 border-slate-200 dark:border-navy-800 hover:border-slate-300 dark:hover:border-navy-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-850'
-            }`}
-          >
-            <span>{m.name}</span>
-            <span
-              className="px-1.5 py-0.5 rounded-md text-[10px] font-black text-white"
-              style={{ backgroundColor: getAQIColorHex(m.category) }}
-            >
-              {m.aqi}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      <div className={cn("relative w-full rounded-3xl overflow-hidden border border-slate-200 dark:border-navy-800 shadow-2xl bg-slate-900 select-none flex flex-col", heightClassName, className)}>
+    <div className="relative w-full h-[680px] sm:h-[750px] rounded-3xl overflow-hidden border border-slate-200 dark:border-navy-800 shadow-2xl bg-slate-900 select-none flex flex-col">
       {/* Top Map Floating HUD: Navigation, Region Switchers & Controls */}
       <div className="absolute top-4 left-4 right-4 z-[500] flex flex-wrap items-center justify-between gap-3 pointer-events-none">
         {/* Left HUD: Breadcrumb Navigation & Region Pills */}
@@ -590,59 +571,34 @@ export function IndiaAirQualityMap({
           </div>
 
           {/* Region Quick Selectors */}
-          <div className="flex items-center bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border border-slate-200 dark:border-navy-700 rounded-2xl p-1 shadow-xl text-xs font-semibold overflow-x-auto">
+          <div className="hidden lg:flex items-center bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border border-slate-200 dark:border-navy-700 rounded-2xl p-1 shadow-xl text-xs font-semibold">
             <button
               onClick={() => handleFlyToRegion('india')}
-              className={cn(
-                "px-2.5 py-1 rounded-xl transition-all whitespace-nowrap",
-                activeRegion === 'india'
-                  ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/25"
-                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-400"
-              )}
+              className="px-2.5 py-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-400 transition-colors"
             >
-              🇮🇳 India (Focus)
+              🇮🇳 India
             </button>
             <button
               onClick={() => handleFlyToRegion('world')}
-              className={cn(
-                "px-2.5 py-1 rounded-xl transition-all whitespace-nowrap",
-                activeRegion === 'world'
-                  ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/25"
-                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-400"
-              )}
+              className="px-2.5 py-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-400 transition-colors"
             >
-              🌍 Whole World
+              🌍 World
             </button>
             <button
               onClick={() => handleFlyToRegion('asia')}
-              className={cn(
-                "hidden sm:inline-block px-2.5 py-1 rounded-xl transition-all whitespace-nowrap",
-                activeRegion === 'asia'
-                  ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/25"
-                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-400"
-              )}
+              className="px-2.5 py-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-400 transition-colors"
             >
               🌏 Asia
             </button>
             <button
               onClick={() => handleFlyToRegion('europe')}
-              className={cn(
-                "hidden md:inline-block px-2.5 py-1 rounded-xl transition-all whitespace-nowrap",
-                activeRegion === 'europe'
-                  ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/25"
-                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-400"
-              )}
+              className="px-2.5 py-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-400 transition-colors"
             >
               🇪🇺 Europe
             </button>
             <button
               onClick={() => handleFlyToRegion('americas')}
-              className={cn(
-                "hidden md:inline-block px-2.5 py-1 rounded-xl transition-all whitespace-nowrap",
-                activeRegion === 'americas'
-                  ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/25"
-                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-400"
-              )}
+              className="px-2.5 py-1 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-400 transition-colors"
             >
               🇺🇸 Americas
             </button>
@@ -827,11 +783,11 @@ export function IndiaAirQualityMap({
       <div className="absolute left-16 top-20 z-[500] pointer-events-none">
         <div className="px-3 py-1 rounded-full bg-navy-900/80 backdrop-blur-md border border-navy-700 text-[10px] uppercase font-bold tracking-wider text-slate-300 shadow-lg">
           {activeLevel === 'world' 
-            ? '🌍 Global World Map' 
+            ? '🌍 Global World Map • 177 Countries Divided • World Megacities' 
             : activeLevel === 'state' 
-              ? '🇮🇳 Indian State Choropleth (L1)' 
+              ? '🇮🇳 Indian State Choropleth & State Names Labeled (L1)' 
               : activeLevel === 'city' 
-                ? '🏙️ District & City Drilldown (L2)' 
+                ? '🏙️ District-Level AQI Precision (L2 • Zoom in for Villages & Stations)' 
                 : '📍 Village & Station Precision (L3 • Click anywhere to measure)'}
         </div>
       </div>
@@ -855,6 +811,48 @@ export function IndiaAirQualityMap({
             onZoomChange={setCurrentZoom}
             onMapClick={handleMapClick}
           />
+
+          {/* WORLD LEVEL: World Countries GeoJSON (Rendered on World Map view) */}
+          {(activeLevel === 'world' || currentZoom <= 5) && (
+            <GeoJSON
+              key={`world-countries-geojson-${mapStyle}`}
+              data={worldCountriesGeoData as any}
+              style={() => ({
+                fillColor: mapStyle === 'dark' ? '#0284C7' : '#38BDF8',
+                fillOpacity: 0.12,
+                color: mapStyle === 'dark' ? '#38BDF8' : '#0284C7',
+                weight: 1,
+                dashArray: '2, 3',
+              })}
+              onEachFeature={(feature, layer) => {
+                const countryName = feature.properties?.name || 'Country';
+                layer.bindTooltip(
+                  `<div class="p-1 font-sans text-xs text-slate-900">
+                     <div class="font-bold text-xs">${countryName}</div>
+                     <div class="text-[10px] text-emerald-600 font-semibold">Click to measure country air quality</div>
+                   </div>`,
+                  { direction: 'top', sticky: true, opacity: 0.95 }
+                );
+                layer.on({
+                  mouseover: (e) => {
+                    const l = e.target;
+                    l.setStyle({ fillOpacity: 0.32, weight: 2, color: '#38BDF8' });
+                  },
+                  mouseout: (e) => {
+                    const l = e.target;
+                    l.setStyle({ fillOpacity: 0.12, weight: 1, color: mapStyle === 'dark' ? '#38BDF8' : '#0284C7' });
+                  },
+                  click: (e) => {
+                    const lat = e.latlng.lat;
+                    const lon = e.latlng.lng;
+                    setMapCenter([lat, lon]);
+                    setCurrentZoom(6);
+                    handleMapClick(lat, lon);
+                  },
+                });
+              }}
+            />
+          )}
 
           {/* WORLD LEVEL: Global Megacities (Rendered on World Map view) */}
           {(activeLevel === 'world' || currentZoom <= 5) &&
@@ -897,34 +895,19 @@ export function IndiaAirQualityMap({
             onEachFeature={onEachStateFeature}
           />
 
-          {/* Indian State Center Badges (Rendered when zoom is 4 to 6) */}
+          {/* PERMANENT STATE NAMES ON MAP (Rendered directly on Indian States) */}
           {activeLevel === 'state' &&
             INDIA_STATES_DATA.map((state) => {
               const color = getAQIColorHex(state.category);
-              const val = getMetricValue(state);
-              const isHazardous = state.averageAqi >= 200;
-
               return (
                 <Marker
-                  key={`state-pin-${state.id}`}
+                  key={`state-label-${state.id}`}
                   position={[state.lat, state.lon]}
-                  icon={createPinIcon(val, state.name, color, 'lg', isHazardous, metricUnit)}
+                  icon={createStateNameBadge(state.name, state.averageAqi, color)}
                   eventHandlers={{
                     click: () => handleSelectState(state),
                   }}
-                >
-                  <Tooltip direction="top" offset={[0, -18]} opacity={0.95}>
-                    <div className="text-center font-sans p-1 text-slate-900">
-                      <div className="font-bold text-xs">{state.name}</div>
-                      <div className="text-[11px] font-semibold" style={{ color }}>
-                        AQI {state.averageAqi} ({state.category})
-                      </div>
-                      <div className="text-[10px] text-slate-500 mt-0.5">
-                        Click to explore {state.citiesCount} cities & districts
-                      </div>
-                    </div>
-                  </Tooltip>
-                </Marker>
+                />
               );
             })}
 
@@ -940,20 +923,20 @@ export function IndiaAirQualityMap({
                   <Marker
                     key={`city-pin-${city.id}`}
                     position={[city.lat, city.lon]}
-                    icon={createPinIcon(val, city.name, color, 'md', isHazardous, metricUnit)}
+                    icon={createDistrictPinIcon(val, city.name, color, isHazardous, metricUnit)}
                     eventHandlers={{
                       click: () => handleSelectCity(city),
                     }}
                   >
-                    <Tooltip direction="top" offset={[0, -16]} opacity={0.95}>
+                    <Tooltip direction="top" offset={[0, -22]} opacity={0.95}>
                       <div className="text-center font-sans p-1 text-slate-900">
-                        <div className="font-bold text-xs">{city.name}</div>
+                        <div className="font-bold text-xs">{city.name} District</div>
                         <div className="text-[11px] font-semibold" style={{ color }}>
-                          AQI {city.aqi} ({city.category})
+                          District AQI: {city.aqi} ({city.category})
                         </div>
                         {city.stations.length > 0 && (
                           <div className="text-[10px] text-emerald-600 font-medium mt-0.5">
-                            Click to view {city.stations.length} ground stations
+                            Click to explore {city.stations.length} ground monitoring stations
                           </div>
                         )}
                       </div>
@@ -1038,16 +1021,9 @@ export function IndiaAirQualityMap({
                   </span>
                 )}
                 {selectedStation && (
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[11px] text-emerald-500 font-medium">
-                      {(selectedStation as IndiaStation).operator}
-                    </span>
-                    {(selectedStation as IndiaStation).code && (
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-navy-800 text-[10px] text-slate-400 font-mono">
-                        {(selectedStation as IndiaStation).code}
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-[11px] text-emerald-500 font-medium">
+                    {(selectedStation as IndiaStation).operator}
+                  </span>
                 )}
               </div>
 
@@ -1078,57 +1054,30 @@ export function IndiaAirQualityMap({
               </div>
             </div>
 
-            {/* Criteria Pollutants Matrix (6-Pollutant Grid) */}
+            {/* Criteria Pollutants Matrix */}
             {(activeInspectorItem as any).pollutants && !(activeInspectorItem as any).isLoading && (
-              <div className="grid grid-cols-3 gap-1.5 my-2.5 text-center text-[10px]">
-                <div className="p-1.5 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800">
-                  <span className="block text-slate-400 font-medium text-[9px]">PM2.5</span>
+              <div className="grid grid-cols-3 gap-2 my-2.5 text-center text-[10px]">
+                <div className="p-2 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800">
+                  <span className="block text-slate-400 font-medium">PM2.5</span>
                   <span className="font-bold text-slate-900 dark:text-white text-xs">
                     {(activeInspectorItem as any).pollutants.pm2_5 ?? 0}
                   </span>
-                  <span className="text-[8px] text-slate-400">µg/m³</span>
+                  <span className="text-[9px] text-slate-400">µg/m³</span>
                 </div>
-                <div className="p-1.5 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800">
-                  <span className="block text-slate-400 font-medium text-[9px]">PM10</span>
+                <div className="p-2 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800">
+                  <span className="block text-slate-400 font-medium">PM10</span>
                   <span className="font-bold text-slate-900 dark:text-white text-xs">
                     {(activeInspectorItem as any).pollutants.pm10 ?? 0}
                   </span>
-                  <span className="text-[8px] text-slate-400">µg/m³</span>
+                  <span className="text-[9px] text-slate-400">µg/m³</span>
                 </div>
-                <div className="p-1.5 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800">
-                  <span className="block text-slate-400 font-medium text-[9px]">NO2</span>
+                <div className="p-2 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800">
+                  <span className="block text-slate-400 font-medium">NO2</span>
                   <span className="font-bold text-slate-900 dark:text-white text-xs">
                     {(activeInspectorItem as any).pollutants.no2 ?? 0}
                   </span>
-                  <span className="text-[8px] text-slate-400">µg/m³</span>
+                  <span className="text-[9px] text-slate-400">µg/m³</span>
                 </div>
-                {(activeInspectorItem as any).pollutants.so2 !== undefined && (
-                  <div className="p-1.5 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800">
-                    <span className="block text-slate-400 font-medium text-[9px]">SO2</span>
-                    <span className="font-bold text-slate-900 dark:text-white text-xs">
-                      {(activeInspectorItem as any).pollutants.so2}
-                    </span>
-                    <span className="text-[8px] text-slate-400">µg/m³</span>
-                  </div>
-                )}
-                {(activeInspectorItem as any).pollutants.co !== undefined && (
-                  <div className="p-1.5 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800">
-                    <span className="block text-slate-400 font-medium text-[9px]">CO</span>
-                    <span className="font-bold text-slate-900 dark:text-white text-xs">
-                      {(activeInspectorItem as any).pollutants.co}
-                    </span>
-                    <span className="text-[8px] text-slate-400">µg/m³</span>
-                  </div>
-                )}
-                {(activeInspectorItem as any).pollutants.o3 !== undefined && (
-                  <div className="p-1.5 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200/80 dark:border-navy-800">
-                    <span className="block text-slate-400 font-medium text-[9px]">O3</span>
-                    <span className="font-bold text-slate-900 dark:text-white text-xs">
-                      {(activeInspectorItem as any).pollutants.o3}
-                    </span>
-                    <span className="text-[8px] text-slate-400">µg/m³</span>
-                  </div>
-                )}
               </div>
             )}
 
@@ -1309,7 +1258,6 @@ export function IndiaAirQualityMap({
           <span>Click anywhere to measure any village, district, or global point</span>
         </div>
       </div>
-    </div>
     </div>
   );
 }

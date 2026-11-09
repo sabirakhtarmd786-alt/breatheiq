@@ -1,5 +1,4 @@
 export type PollutantKey = 'pm2_5' | 'pm10' | 'no2' | 'so2' | 'co' | 'o3';
-export type AnyPollutantKey = PollutantKey | 'pm25';
 
 export type AQICategory = 
   | 'good' 
@@ -7,14 +6,7 @@ export type AQICategory =
   | 'sensitive' 
   | 'unhealthy' 
   | 'veryUnhealthy' 
-  | 'hazardous'
-  | 'Good'
-  | 'Moderate'
-  | 'Unhealthy for Sensitive Groups'
-  | 'Unhealthy'
-  | 'Very Unhealthy'
-  | 'Hazardous'
-  | 'Unknown';
+  | 'hazardous';
 
 export interface AQICategoryInfo {
   category: AQICategory;
@@ -39,24 +31,8 @@ export interface AQIResult {
   bgLight: string;
   description: string;
   dominantPollutant: PollutantKey;
-  standard: 'US_EPA' | 'EAQI' | 'US-EPA' | 'IN_NAAQI' | string;
+  standard: 'US_EPA' | 'EAQI';
   calculatedAt: string;
-  calculated?: boolean;
-}
-
-export interface Pollutant {
-  name: string;
-  formula?: string;
-  chemicalFormula?: string;
-  fullName?: string;
-  unit: string;
-  description?: string;
-  category?: AQICategory;
-  whoThreshold?: number;
-  epaThreshold?: number;
-  sources?: string[];
-  healthEffects?: string;
-  [key: string]: any;
 }
 
 export interface PollutantMeasurement {
@@ -74,52 +50,14 @@ export interface PollutantMeasurement {
   healthEffects: string;
 }
 
-export interface Measurement {
-  value: number;
-  unit: string;
-  aqi?: number;
-  category?: AQICategory;
-  lastUpdated?: string;
-  timestamp?: string;
-  source?: string;
-  measurementType?: string;
-  pollutant?: PollutantKey | string;
-  [key: string]: any;
-}
-
-export interface Station {
+export interface LocationData {
   id: string | number;
   name: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  latitude?: number;
-  longitude?: number;
-  coordinates?: {
-    lat: number;
-    lon: number;
-  };
-  aqi?: number;
-  status?: string;
-  pollutants?: Record<string, any>;
-  measurements?: Record<string, any>;
-  lastUpdated?: string;
-  distance?: number;
-  distanceKm?: number;
-  source?: string;
-  [key: string]: any;
-}
-
-export interface LocationData {
-  id?: string | number;
-  name: string;
-  city?: string;
   country: string;
   countryCode?: string;
   admin1?: string;
-  latitude?: number;
-  longitude?: number;
-  coordinates?: { lat: number; lon: number };
+  latitude: number;
+  longitude: number;
   timezone?: string;
   elevation?: number;
   isUserLocation?: boolean;
@@ -132,65 +70,23 @@ export interface AirQualityData {
   timestamp: string;
   aqi: AQIResult;
   pollutants: Record<PollutantKey, PollutantMeasurement>;
-  measurements?: Record<string, any>;
   source: string;
   dataSourceType: DataSourceType;
   stationName?: string;
   stationId?: string;
   stationDistanceKm?: number;
   dataFreshnessMinutes: number;
-  weather?: {
-    temperature?: number;
-    humidity?: number;
-    windSpeed?: number;
-    windDirection?: number;
-  };
-  sparkline?: number[];
-  fetchedAt?: string;
-  dataSource?: string;
-  stations?: Station[];
-  hourlyData?: HistoricalDataPoint[];
-  isDemo?: boolean;
-  [key: string]: any;
 }
 
 export interface HistoricalDataPoint {
   time: string;
-  pm2_5?: number;
-  pm25?: number;
-  pm10?: number;
-  no2?: number;
-  so2?: number;
-  co?: number;
-  o3?: number;
+  pm2_5: number;
+  pm10: number;
+  no2: number;
+  so2: number;
+  co: number;
+  o3: number;
   aqi: number;
-}
-
-export interface ForecastHour {
-  time: string;
-  pm2_5?: number;
-  pm25?: number;
-  pm10?: number;
-  no2?: number;
-  o3?: number;
-  so2?: number;
-  co?: number;
-  aqi?: number;
-  [key: string]: any;
-}
-
-export interface ForecastDay {
-  date: string;
-  dayLabel?: string;
-  aqi?: number;
-  minAQI?: number;
-  maxAQI?: number;
-  dominantPollutant?: PollutantKey;
-  hourly?: ForecastHour[];
-  hours?: ForecastHour[];
-  summary?: string;
-  category?: AQICategory;
-  [key: string]: any;
 }
 
 export interface ForecastDataPoint {
@@ -225,23 +121,6 @@ export interface AlertThresholdConfig {
   threshold: number;
   enabled: boolean;
   notifyBrowser: boolean;
-}
-
-export interface Alert {
-  id: string;
-  title?: string;
-  message?: string;
-  pollutant: PollutantKey | string;
-  threshold?: number;
-  currentValue?: number;
-  unit?: string;
-  severity?: 'low' | 'medium' | 'high' | 'critical' | 'info' | 'warning';
-  timestamp?: string;
-  createdAt?: string;
-  triggeredAt?: string;
-  enabled?: boolean;
-  active?: boolean;
-  [key: string]: any;
 }
 
 export interface InAppAlert {

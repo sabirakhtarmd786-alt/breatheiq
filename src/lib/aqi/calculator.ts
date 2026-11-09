@@ -175,25 +175,25 @@ export function getCategoryFromAQI(aqi: number): AQICategory {
 }
 
 export function getAQILabel(category: AQICategory): string {
-  const cat = String(category || '').toLowerCase();
-  if (cat.includes('good')) return 'Good';
-  if (cat.includes('moderate')) return 'Moderate';
-  if (cat.includes('sensitive')) return 'Unhealthy for Sensitive Groups';
-  if (cat.includes('very')) return 'Very Unhealthy';
-  if (cat.includes('unhealthy')) return 'Unhealthy';
-  if (cat.includes('hazard')) return 'Hazardous';
-  return 'Moderate';
+  switch (category) {
+    case 'good': return 'Good';
+    case 'moderate': return 'Moderate';
+    case 'sensitive': return 'Unhealthy for Sensitive Groups';
+    case 'unhealthy': return 'Unhealthy';
+    case 'veryUnhealthy': return 'Very Unhealthy';
+    case 'hazardous': return 'Hazardous';
+  }
 }
 
 export function getAQIColorHex(category: AQICategory): string {
-  const cat = String(category || '').toLowerCase();
-  if (cat.includes('good')) return '#10B981';
-  if (cat.includes('moderate')) return '#F59E0B';
-  if (cat.includes('sensitive')) return '#F97316';
-  if (cat.includes('very')) return '#A855F7';
-  if (cat.includes('unhealthy')) return '#EF4444';
-  if (cat.includes('hazard')) return '#881337';
-  return '#10B981';
+  switch (category) {
+    case 'good': return '#10B981';
+    case 'moderate': return '#F59E0B';
+    case 'sensitive': return '#F97316';
+    case 'unhealthy': return '#EF4444';
+    case 'veryUnhealthy': return '#A855F7';
+    case 'hazardous': return '#881337';
+  }
 }
 
 /**
@@ -234,28 +234,6 @@ export function calculateOverallAQI(
     dominantPollutant: dominant,
     standard: 'US_EPA',
     calculatedAt: new Date().toISOString(),
-    calculated: true,
-  };
-}
-
-export function calculateAQI(
-  measurementsOrRaw: Partial<Record<string, any>>,
-  overrideAQI?: number
-): AQIResult {
-  const rawValues: Partial<Record<PollutantKey, number>> = {};
-  if (measurementsOrRaw) {
-    for (const [key, item] of Object.entries(measurementsOrRaw)) {
-      const val = typeof item === 'number' ? item : (item && typeof item.value === 'number') ? item.value : undefined;
-      const normalizedKey = key === 'pm25' ? 'pm2_5' : (key as PollutantKey);
-      if (val !== undefined && !isNaN(val)) {
-        rawValues[normalizedKey] = val;
-      }
-    }
-  }
-  const result = calculateOverallAQI(rawValues, overrideAQI);
-  return {
-    ...result,
-    calculated: result.value > 0 || Object.keys(rawValues).length > 0,
   };
 }
 

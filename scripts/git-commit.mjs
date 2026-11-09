@@ -43,6 +43,8 @@ async function main() {
     await git.add({ fs, dir, filepath });
   }
 
+  const commitMsg = process.argv[2] || "feat: visual overhaul with color-coded dashboard, sticky command navigation, and world/india map";
+
   const sha = await git.commit({
     fs,
     dir,
@@ -50,7 +52,7 @@ async function main() {
       name: "Sabir",
       email: "sabir@breatheiq.local",
     },
-    message: "Initial commit: BreatheIQ - Real-Time Air Quality Intelligence Platform",
+    message: commitMsg,
   });
 
   console.log("Commit successful! SHA:", sha);

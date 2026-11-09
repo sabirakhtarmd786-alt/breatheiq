@@ -23,11 +23,6 @@ const DynamicIndiaMap = dynamic(
   }
 );
 
-interface MapWrapperProps {
-  className?: string;
-  heightClassName?: string;
-}
-
-export function MapWrapper({ className, heightClassName }: MapWrapperProps = {}) {
-  return <DynamicIndiaMap className={className} heightClassName={heightClassName} />;
+export function MapWrapper() {
+  return <DynamicIndiaMap />;
 }
