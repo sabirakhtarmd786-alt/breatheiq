@@ -3,7 +3,9 @@
 > **Tagline:** Understand Your Air. Protect Your Health.  
 > **Challenge:** Let's Code Diwali Challenge 2026  
 > **Theme:** Technology for Cleaner Air  
-> **Developer:** 2nd-Year Computer Science & Engineering (IoT) Student  
+> **Access:** Open Public Access (100% Free • No Sign-In Required • Zero API Keys Needed)  
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsabirakhtarmd786-alt%2Fbreatheiq)
 
 ---
 
